@@ -1,0 +1,283 @@
+.btn__voltar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    color: oklch(0.62 0.22 25);
+    font-family: "Inter", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 0;
+    margin-bottom: 16px;
+}
+
+.btn__voltar:hover {
+    opacity: 0.8;
+}
+
+.veiculo__header {
+    margin-bottom: 32px;
+}
+
+.veiculo__titulo {
+    color: white;
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 400;
+    font-size: 2.2rem;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.veiculo__info {
+    color: oklch(0.68 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.alertas__section {
+    max-width: 900px;
+    margin-bottom: 32px;
+}
+
+.alertas__titulo {
+    color: oklch(0.62 0.22 25);
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+}
+
+.alertas__lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.alerta__card {
+    box-sizing: border-box;
+    border-left: 4px solid;
+    border-radius: 6px;
+    padding: 16px;
+    background-image: linear-gradient(oklch(0.14 0.01 265) 0%, oklch(0.09 0.005 280) 100%);
+}
+
+.alerta__card--atrasada {
+    border-color: oklch(0.55 0.15 25);
+    background-image: linear-gradient(to right, oklch(0.55 0.15 25 / 0.15), oklch(0.09 0.005 280));
+}
+
+.alerta__card--urgente {
+    border-color: oklch(0.62 0.22 25);
+    background-image: linear-gradient(to right, oklch(0.62 0.22 25 / 0.12), oklch(0.09 0.005 280));
+}
+
+.alerta__card--alerta {
+    border-color: oklch(0.65 0.20 80);
+    background-image: linear-gradient(to right, oklch(0.65 0.20 80 / 0.1), oklch(0.09 0.005 280));
+}
+
+.alerta__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.alerta__titulo {
+    color: white;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.alerta__badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: "Inter", sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.alerta__info {
+    color: oklch(0.68 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.alerta__barra__container {
+    margin-top: 12px;
+    margin-bottom: 8px;
+}
+
+.alerta__barra__fundo {
+    width: 100%;
+    height: 6px;
+    background: oklch(0.2 0.012 265);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.alerta__barra__progresso {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.manutencoes__section {
+    max-width: 900px;
+}
+
+.manutencoes__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.manutencoes__titulo {
+    color: white;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+.btn__adicionar {
+    background: oklch(0.62 0.22 25);
+    border: 2px solid oklch(0.26 0.012 265);
+    border-radius: 6px;
+    padding: 10px 20px;
+    color: oklch(0.96 0.01 140);
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.btn__adicionar:hover {
+    opacity: 0.9;
+}
+
+.manutencoes__vazio {
+    box-sizing: border-box;
+    border: 2px solid oklch(0.26 0.012 265);
+    border-radius: 8px;
+    padding: 40px 20px;
+    background-image: linear-gradient(oklch(0.14 0.01 265) 0%, oklch(0.09 0.005 280) 100%);
+    text-align: center;
+}
+
+.manutencoes__vazio p {
+    color: oklch(0.68 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+}
+
+.manutencoes__lista {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.manutencao__card {
+    box-sizing: border-box;
+    border: 2px solid oklch(0.26 0.012 265);
+    border-radius: 8px;
+    padding: 24px;
+    background-image: linear-gradient(oklch(0.14 0.01 265) 0%, oklch(0.09 0.005 280) 100%);
+}
+
+.manutencao__card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.manutencao__card__tipo {
+    color: oklch(0.62 0.22 25);
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 400;
+    font-size: 1.4rem;
+    letter-spacing: 0.5px;
+}
+
+.manutencao__card__custo {
+    color: white;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.manutencao__card__info {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 12px;
+}
+
+.manutencao__card__info__item {
+    color: oklch(0.68 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.85rem;
+}
+
+.manutencao__card__info__label {
+    color: oklch(0.5 0.02 260);
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.manutencao__card__descricao {
+    color: oklch(0.68 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid oklch(0.2 0.012 265);
+}
+
+.manutencao__card__nota {
+    margin-top: 12px;
+}
+
+.btn__nota {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: oklch(0.2 0.012 265);
+    border: 1px solid oklch(0.26 0.012 265);
+    border-radius: 4px;
+    padding: 6px 12px;
+    color: oklch(0.62 0.22 25);
+    font-family: "Inter", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn__nota:hover {
+    background: oklch(0.24 0.012 265);
+}
+
+.btn__excluir__manutencao {
+    background: transparent;
+    border: 1px solid oklch(0.4 0.05 25);
+    border-radius: 4px;
+    padding: 6px 12px;
+    color: oklch(0.5 0.1 25);
+    font-family: "Inter", sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.btn__excluir__manutencao:hover {
+    background: oklch(0.15 0.01 265);
+    border-color: oklch(0.5 0.1 25);
+}

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Veículo — Minha Garagem</title>
+    <link rel="stylesheet" href="./styles/style.css">
+    <link rel="stylesheet" href="./styles/veiculo-detalhes.css">
+    <link rel="icon" type="image/png" sizes="1020x1020"  href="./assets/favicons/favicon.png">
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header__div">
+            <a class="header__home" href="./index.html">
+                <span class="header__home__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                </span>
+                MINHA GARAGEM
+            </a>
+
+            <nav class="header__nav">
+                <a class="header__nav__garage" href="./index.html">Garagem</a>
+                <a class="header__nav__addVeicle" href="./veiculo-novo.html">+ Adicionar Veiculo</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="veiculo__header">
+            <button class="btn__voltar" onclick="window.location.href='./index.html'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Voltar
+            </button>
+            <h1 class="veiculo__titulo" id="veiculoTitulo"></h1>
+            <div class="veiculo__info" id="veiculoInfo"></div>
+        </div>
+
+        <div class="alertas__section" id="alertasSection" style="display:none;">
+            <h2 class="alertas__titulo">⚠️ Manutenções Preventivas</h2>
+            <div class="alertas__lista" id="alertasLista"></div>
+        </div>
+
+        <div class="manutencoes__section">
+            <div class="manutencoes__header">
+                <h2 class="manutencoes__titulo">Manutenções Realizadas</h2>
+                <button class="btn__adicionar" id="btnAdicionarManutencao">+ Nova Manutenção</button>
+            </div>
+
+            <div class="manutencoes__vazio" id="manutencoesVazio" style="display:none;">
+                <p>Nenhuma manutenção registrada ainda.</p>
+                <p>Adicione a primeira manutenção para começar o histórico.</p>
+            </div>
+
+            <div class="manutencoes__lista" id="manutencoesLista"></div>
+        </div>
+    </main>
+
+    <script type="module" src="./js/veiculo-detalhes.js"></script>
+</body>
+</html>

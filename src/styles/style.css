@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+
+
+* { /* RESETAR AS POSICOES DOS ELEMENTOS */
+    margin: 0;
+    padding: 0;
+}
+
+
+body {
+    height: 100vh;  /* fazer com que ocupe a tela inteira do navegador */
+    background-color: oklch(0.11 0.005 280)
+}
+
+    /* ===================== HEADER ====================== */
+
+    .header{
+        display: block;
+        box-sizing: border-box;
+        background-color: black;
+        height: 85px;
+        width: 100%;
+        border-bottom: 2px solid oklch(0.26 0.012 265)
+
+    }
+
+    .header__div{
+        display: flex;
+        align-items: center;
+        padding-left: 10%;
+        padding-right: 10%;
+        height: 100%;
+        box-sizing: border-box;
+        gap:60%;
+    }
+
+    .header__home{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: oklch(0.62 0.22 25);
+        text-decoration: none;
+        font-size: 2rem;
+        font-family: "Bebas Neue", sans-serif;
+        letter-spacing: 1.2px;
+        white-space: nowrap;
+        
+
+        
+    }
+
+    .header__home__icon{
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background-color: oklch(0.62 0.22 25 / 15%);
+        border: 1px solid oklch(0.62 0.22 25 / 40%);
+        color: oklch(0.62 0.22 25);
+
+    }
+
+    .header__nav{
+        display: flex;
+        gap: 50px;
+    }
+
+    .header__nav__garage{
+        color: oklch(0.62 0.22 25);
+        font-family: "Inter", sans-serif;
+        font-size: 1rem;
+        text-decoration: none;
+        padding: 3%;
+    }
+
+    .header__nav__garage:hover{
+        transform: scale(1.05);
+        box-shadow: 0 0 5px;
+        color: oklch(0.62 0.22 25);
+        border-radius: 5px;
+    }
+
+    /* .header__nav__garage:hover{
+
+    } */
+
+    .header__nav__addVeicle{
+        color: oklch(0.96 0.01 140);
+        font-family: "Inter", sans-serif;
+        font-size: 1rem;
+        text-decoration: none;
+        white-space: nowrap;
+        padding: 3%;
+    }
+
+    .header__nav__addVeicle:hover{
+        transform: scale(1.05);
+        box-shadow: 0 0 5px;
+        color: rgb(247, 248, 248);
+        border-radius: 5px;
+    }
+
+        /* ===================== MAIN ====================== */
+
+        .main{
+            display: block;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding-left: 7%;
+            padding-right: 10%;
+            padding-top: 3%;
+
+
+        }
+
+        .main__content{
+            box-sizing: border-box;
+            width: 100%;
+            border: 2px solid oklch(0.26 0.012 265);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            justify-content: center;
+            font-family: "Bebas Neue", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+            color: white;
+
+            background-image: radial-gradient(at center top, oklch(44.965% 0.18397 29.155 / 0.35), transparent 60%), linear-gradient(oklch(0.14 0.01 265) 0%, oklch(0.09 0.005 280) 100%);
+        }
+
+        .main__content__title{
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            font-family: "Bebas Neue", sans-serif;
+            font-weight: 400;
+        }
+
+        .main__content__desc{
+            margin-bottom: 24px;
+            color: oklch(0.68 0.02 260);
+            font-family: "Inter", sans-serif;
+        }
+
+        .main__content__button_addCar{
+            border: 2px solid oklch(0.26 0.012 265);
+            background: oklch(0.62 0.22 25);
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: oklch(0.96 0.01 140);
+            text-decoration: bold;
+        }
+
+        .veiculo__card__button_excluir{
+            border: 2px solid oklch(0.26 0.012 265);
+            background: transparent;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: oklch(0.62 0.22 25);
+            font-family: "Inter", sans-serif;
+            margin-top: 12px;
+        }

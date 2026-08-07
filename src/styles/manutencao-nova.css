@@ -1,0 +1,84 @@
+.form__header {
+    margin-bottom: 24px;
+}
+
+.form__textarea {
+    box-sizing: border-box;
+    background-color: oklch(0.11 0.005 280);
+    border: 1px solid oklch(0.26 0.012 265);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: white;
+    font-family: "Inter", sans-serif;
+    font-size: 0.95rem;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form__textarea:focus {
+    outline: none;
+    border-color: oklch(0.62 0.22 25);
+}
+
+.file__upload {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn__upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: oklch(0.2 0.012 265);
+    border: 1px solid oklch(0.26 0.012 265);
+    border-radius: 6px;
+    padding: 10px 16px;
+    color: oklch(0.68 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+.btn__upload:hover {
+    background: oklch(0.24 0.012 265);
+}
+
+.file__name {
+    color: oklch(0.62 0.22 25);
+    font-family: "Inter", sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.form__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.form__cancel {
+    border: 2px solid oklch(0.26 0.012 265);
+    background: transparent;
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: oklch(0.68 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+}
+
+.form__cancel:hover {
+    background: oklch(0.15 0.01 265);
+}
+
+select.form__input {
+    cursor: pointer;
+}
+
+select.form__input option {
+    background-color: oklch(0.11 0.005 280);
+    color: white;
+}

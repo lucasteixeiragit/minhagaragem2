@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Garagem</title>
+    <link rel="stylesheet" href="./styles/style.css">
+    <link rel="stylesheet" href="./styles/veiculo-novo.css">
+    <link rel="icon" type="image/png" sizes="1020x1020"  href="./assets/favicons/favicon.png">
+</head>
+
+<body>
+
+    <!--===================== HEADER ======================-->
+    <header class="header">
+        <div class="header__div">
+            <a class="header__home" href="#">
+                <span class="header__home__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                </span>
+                MINHA GARAGEM
+            </a>
+
+            <nav class="header__nav">
+                <a class="header__nav__garage" href="./index.html">Garagem</a>
+                <a class="header__nav__addVeicle" href="./veiculo-novo.html">+ Adicionar Veiculo</a>
+            </nav>
+        </div>
+    </header>
+
+
+    <!--===================== MAIN / HOME ======================-->
+    <main class="main">
+        <div class="alertas__resumo" id="alertasResumo" style="display:none;"></div>
+
+        <div class="main__content" id="garagemVazia">
+            <h1 class="main__content__title">SUA GARAGEM ESTÁ VAZIA</h1>
+            <p class="main__content__desc">Adicione seu primeiro veículo para começar a registrar manutenções.</p>
+            <button class="main__content__button_addCar" id="btnAddVeiculo">+ Adicionar veículo</button>
+        </div>
+
+        <div class="main__list" id="listaVeiculos" style="display:none;"></div> <!--main.js-->
+    </main>
+
+
+
+
+    <script type="module" src="./js/main.js"></script>
+</body>

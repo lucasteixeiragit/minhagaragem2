@@ -1,0 +1,343 @@
+/* ===================== PAGINA: NOVO VEICULO ====================== */
+
+.form__title {
+    color: white;
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 400;
+    font-size: 2.2rem;
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+}
+
+.form__card {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 700px;
+    border: 2px solid oklch(0.26 0.012 265);
+    border-radius: 8px;
+    padding: 32px;
+    background-image: radial-gradient(at center top, oklch(44.965% 0.18397 29.155 / 0.15), transparent 60%), linear-gradient(oklch(0.14 0.01 265) 0%, oklch(0.09 0.005 280) 100%);
+}
+
+.form__card__subtitle {
+    color: white;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn__carregar__manual {
+    background: oklch(0.2 0.012 265);
+    border: 1px solid oklch(0.26 0.012 265);
+    border-radius: 4px;
+    padding: 6px 12px;
+    color: oklch(0.62 0.22 25);
+    font-family: "Inter", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn__carregar__manual:hover {
+    background: oklch(0.24 0.012 265);
+}
+
+.form__helper {
+    color: oklch(0.58 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.8rem;
+    margin-bottom: 16px;
+    margin-top: -8px;
+}
+
+.intervalo__card {
+    box-sizing: border-box;
+    background: oklch(0.11 0.005 280);
+    border: 1px solid oklch(0.2 0.012 265);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.intervalo__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.intervalo__titulo {
+    color: oklch(0.62 0.22 25);
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.btn__remover__intervalo {
+    background: transparent;
+    border: 1px solid oklch(0.4 0.05 25);
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    color: oklch(0.5 0.1 25);
+    font-family: "Inter", sans-serif;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.btn__remover__intervalo:hover {
+    background: oklch(0.15 0.01 265);
+    border-color: oklch(0.5 0.1 25);
+}
+
+.alertas__resumo {
+    margin-bottom: 32px;
+    padding: 20px;
+    border-left: 4px solid oklch(0.62 0.22 25);
+    border-radius: 6px;
+    background-image: linear-gradient(to right, oklch(0.62 0.22 25 / 0.12), oklch(0.09 0.005 280));
+}
+
+.alertas__resumo__titulo {
+    color: oklch(0.62 0.22 25);
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+}
+
+.alertas__resumo__lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.alerta__resumo__item {
+    color: oklch(0.68 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    background: oklch(0.11 0.005 280);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.alerta__resumo__item:hover {
+    background: oklch(0.15 0.01 265);
+}
+
+.alerta__resumo__veiculo {
+    color: oklch(0.62 0.22 25);
+    font-weight: 600;
+}
+
+.alerta__resumo__contador {
+    display: inline-block;
+    padding: 2px 8px;
+    background: oklch(0.62 0.22 25);
+    color: oklch(0.96 0.01 140);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-left: 8px;
+}
+
+.veiculo__card__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 12px;
+    color: oklch(0.96 0.01 140);
+    font-family: "Inter", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.form__card__subtitle--spaced {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid oklch(0.26 0.012 265);
+}
+
+.form__row {
+    display: flex;
+    gap: 20px;
+}
+
+.form__row .form__field {
+    flex: 1;
+}
+
+.form__field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+.form__label {
+    color: oklch(0.62 0.22 25);
+    font-family: "Inter", sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.form__input {
+    box-sizing: border-box;
+    background-color: oklch(0.11 0.005 280);
+    border: 1px solid oklch(0.26 0.012 265);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: white;
+    font-family: "Inter", sans-serif;
+    font-size: 0.95rem;
+}
+
+.form__input:focus {
+    outline: none;
+    border-color: oklch(0.62 0.22 25);
+}
+
+.form__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+.form__submit {
+    border: 2px solid oklch(0.26 0.012 265);
+    background: oklch(0.62 0.22 25);
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: oklch(0.96 0.01 140);
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+}
+
+.header__nav__addVeicle--active {
+    color: oklch(0.62 0.22 25);
+}
+
+/* ===================== LISTA DE VEICULOS (INDEX) ====================== */
+
+.main__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.veiculo__card {
+    box-sizing: border-box;
+    border: 2px solid oklch(0.26 0.012 265);
+    border-radius: 8px;
+    padding: 20px;
+    background-image: linear-gradient(oklch(0.14 0.01 265) 0%, oklch(0.09 0.005 280) 100%);
+}
+
+.veiculo__card__titulo {
+    color: oklch(0.62 0.22 25);
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 400;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+}
+
+.veiculo__card__info {
+    color: oklch(0.68 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+
+.veiculo__card__manutencoes {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid oklch(0.2 0.012 265);
+    color: oklch(0.62 0.22 25);
+    font-weight: 500;
+}
+
+.veiculo__card__buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.veiculo__card__button_detalhes {
+    flex: 1;
+    background: oklch(0.62 0.22 25);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: oklch(0.96 0.01 140);
+    font-family: "Inter", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.veiculo__card__button_detalhes:hover {
+    opacity: 0.9;
+}
+
+.veiculo__card__button_excluir {
+    background: transparent;
+    border: 1px solid oklch(0.4 0.05 25);
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: oklch(0.5 0.1 25);
+    font-family: "Inter", sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.veiculo__card__button_excluir:hover {
+    background: oklch(0.15 0.01 265);
+    border-color: oklch(0.5 0.1 25);
+}
+
+/* ===================== LISTA DE VEICULOS (INDEX) ====================== */
+
+.main__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(35%, 1fr));
+    gap: 20px;
+}
+
+.veiculo__card {
+    box-sizing: border-box;
+    border: 2px solid oklch(0.26 0.012 265);
+    border-radius: 8px;
+    padding: 40px;
+    background-image: linear-gradient(oklch(0.14 0.01 265) 0%, oklch(0.09 0.005 280) 100%);
+}
+
+.veiculo__card__titulo {
+    color: oklch(0.62 0.22 25);
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 400;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+}
+
+.veiculo__card__info {
+    color: oklch(0.68 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}

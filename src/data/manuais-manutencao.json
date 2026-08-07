@@ -1,0 +1,47 @@
+{
+  "Chevrolet": {
+    "modelos": {
+      "Onix": {
+        "anos": "2013-2025",
+        "intervalos": {
+          "trocaOleo": {
+            "nome": "Troca de óleo do motor",
+            "intervaloKm": 10000,
+            "intervaloMeses": 12,
+            "descricao": "Troca de óleo e filtro de óleo"
+          },
+          "filtroAr": {
+            "nome": "Filtro de ar do motor",
+            "intervaloKm": 30000,
+            "intervaloMeses": 36,
+            "descricao": "Substituição do filtro de ar"
+          },
+          "filtroCombustivel": {
+            "nome": "Filtro de combustível",
+            "intervaloKm": 60000,
+            "intervaloMeses": 60,
+            "descricao": "Substituição do filtro de combustível"
+          },
+          "velas": {
+            "nome": "Velas de ignição",
+            "intervaloKm": 30000,
+            "intervaloMeses": 36,
+            "descricao": "Troca das velas de ignição"
+          },
+          "correia": {
+            "nome": "Correia dentada",
+            "intervaloKm": 100000,
+            "intervaloMeses": 120,
+            "descricao": "Substituição da correia dentada"
+          },
+          "revisaoGeral": {
+            "nome": "Revisão geral",
+            "intervaloKm": 10000,
+            "intervaloMeses": 12,
+            "descricao": "Revisão periódica conforme manual"
+          }
+        }
+      }
+    }
+  }
+}

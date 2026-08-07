@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Veículo — Minha Garagem</title>
+    <link rel="stylesheet" href="./styles/style.css">
+    <link rel="stylesheet" href="./styles/veiculo-novo.css">
+    <link rel="icon" type="image/png" sizes="1020x1020"  href="./assets/favicons/favicon.png">
+</head>
+
+<body>
+
+    <!--===================== HEADER ======================-->
+    <header class="header">
+        <div class="header__div">
+            <a class="header__home" href="./index.html">
+                <span class="header__home__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                </span>
+                MINHA GARAGEM
+            </a>
+
+            <nav class="header__nav">
+                <a class="header__nav__garage" href="./index.html">Garagem</a>
+                <a class="header__nav__addVeicle" href="./veiculo-novo.html">+ Adicionar Veiculo</a>
+            </nav>
+        </div>
+    </header>
+
+    <!--===================== MAIN / FORM ======================-->
+    <main class="main">
+        <h1 class="form__title">NOVO VEÍCULO</h1>
+
+        <form class="form__card" id="formNovoVeiculo">
+            <h2 class="form__card__subtitle">Dados do veículo</h2>
+
+             <!-- armazena os dados em veiculo-novo.js -->
+            <div class="form__field">
+                <label class="form__label" for="apelido">APELIDO *</label>
+                <input class="form__input" type="text" id="apelido" name="apelido" placeholder="Ex.: Meu Civic" required>
+            </div>
+
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="marca">MARCA *</label>
+                    <select class="form__input" id="marca" name="marca" required>
+                        <option value="">Selecione...</option>
+                    </select>
+                </div>
+                <div class="form__field">
+                    <label class="form__label" for="modelo">MODELO *</label>
+                    <select class="form__input" id="modelo" name="modelo" required disabled>
+                        <option value="">Selecione a marca primeiro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="versao">VERSÃO *</label>
+                    <select class="form__input" id="versao" name="versao" required disabled>
+                        <option value="">Selecione o modelo primeiro</option>
+                    </select>
+                </div>
+                <div class="form__field">
+                    <label class="form__label" for="ano">ANO *</label>
+                    <select class="form__input" id="ano" name="ano" required disabled>
+                        <option value="">Selecione a versão primeiro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="cambio">CÂMBIO *</label>
+                    <select class="form__input" id="cambio" name="cambio" required disabled>
+                        <option value="">Selecione a versão primeiro</option>
+                    </select>
+                </div>
+                <div class="form__field">
+                    <label class="form__label" for="placa">PLACA</label>
+                    <input class="form__input" type="text" id="placa" name="placa" placeholder="Ex.: ABC1D23">
+                </div>
+            </div>
+
+            <h2 class="form__card__subtitle form__card__subtitle--spaced">Quilometragem</h2>
+
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="kmAtual">KM ATUAL (DATA DE REFERÊNCIA)</label>
+                    <input class="form__input" type="number" id="kmAtual" name="kmAtual" placeholder="0">
+                </div>
+                <div class="form__field">
+                    <label class="form__label" for="dataLeitura">DATA DESTA LEITURA</label>
+                    <input class="form__input" type="date" id="dataLeitura" name="dataLeitura">
+                </div>
+            </div>
+
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="kmMensal">KM RODADOS POR MÊS (MÉDIA)</label>
+                    <input class="form__input" type="number" id="kmMensal" name="kmMensal" placeholder="1000">
+                </div>
+            </div>
+
+            <h2 class="form__card__subtitle form__card__subtitle--spaced">
+                Intervalos de Manutenção Preventiva
+            </h2>
+            <p class="form__helper">Os intervalos serão carregados automaticamente conforme o MANUAL DO FABRICANTE após selecionar marca e modelo. </p>
+            <p class="form__helper">Altere os intervalos caso ache necessário.</p>
+            <div id="intervalosManutencoesContainer"></div>
+
+            <!-- envia comando para veiculo-novo.js para salvar o formulario com os dados -->
+            <div class="form__actions">
+                <button class="form__submit" type="submit">Adicionar</button>
+            </div>
+        </form>
+    </main>
+
+    <script src="./js/veiculo-novo.js"></script>
+</body>
+</html>
