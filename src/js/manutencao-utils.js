@@ -12,11 +12,37 @@
 // ============================================================
 
 // ============================================================
-// FUNÇÃO: calcularProximasManutencoes(veiculo)
+// FUNÇÃO: calcularKmAtualEstimado(veiculo, dataReferencia)
+// ============================================================
+// PROPÓSITO: Estima a quilometragem atual a partir da leitura registrada e da média mensal
+// PARÂMETROS:
+//   - veiculo: Objeto do veículo
+//   - dataReferencia: Data usada para simular avanço de tempo
+// RETORNA: Número inteiro estimado de KM
+// ============================================================
+function calcularKmAtualEstimado(veiculo, dataReferencia = new Date()) {
+    const kmAtual = parseInt(veiculo.kmAtual) || 0;
+    const kmMensal = parseInt(veiculo.kmMensal) || 0;
+    const dataLeitura = veiculo.dataLeitura ? new Date(veiculo.dataLeitura + 'T00:00:00') : null;
+
+    if (!dataLeitura || !kmMensal) {
+        return kmAtual;
+    }
+
+    const diferencaDias = Math.max(0, Math.floor((dataReferencia - dataLeitura) / (1000 * 60 * 60 * 24)));
+    const kmDiaria = kmMensal / 30;
+    const kmEstimado = kmAtual + (kmDiaria * diferencaDias);
+
+    return Math.round(kmEstimado);
+}
+
+// ============================================================
+// FUNÇÃO: calcularProximasManutencoes(veiculo, dataReferencia)
 // ============================================================
 // PROPÓSITO: Calcula quando fazer cada manutenção preventiva
 // PARÂMETROS:
 //   - veiculo: Objeto completo do veículo (deve ter intervalosManutencoesPreventivas e kmAtual)
+//   - dataReferencia: Data usada para simular avanço de tempo
 // RETORNA: Array de objetos com informações de cada manutenção
 // LÓGICA:
 //   1. Para cada intervalo de manutenção preventiva:
@@ -26,16 +52,15 @@
 //      d. Define status (ok, alerta, urgente, atrasada)
 //   2. Ordena por urgência (atrasadas primeiro)
 // ============================================================
-function calcularProximasManutencoes(veiculo) {
+function calcularProximasManutencoes(veiculo, dataReferencia = new Date()) {
     // Validação 1: Verifica se o veículo tem intervalos de manutenção configurados
     // Se não tiver, não há nada para calcular
     if (!veiculo.intervalosManutencoesPreventivas || Object.keys(veiculo.intervalosManutencoesPreventivas).length === 0) {
         return [];
     }
 
-    // Converte kmAtual para número (caso venha como string)
-    // Se não houver valor, usa 0 como padrão
-    const kmAtual = parseInt(veiculo.kmAtual) || 0;
+    // Estima a quilometragem atual com base na leitura registrada e na média mensal
+    const kmAtual = calcularKmAtualEstimado(veiculo, dataReferencia);
     
     // Array que armazenará as informações de cada manutenção
     const proximasManutencoes = [];
@@ -231,4 +256,4 @@ function getStatusText(status) {
 //   - main.js → calcularProximasManutencoes, getStatusColor
 //   - veiculo-detalhes.js → Todas as 3 funções
 // ============================================================
-export { calcularProximasManutencoes, getStatusColor, getStatusText };
+export { calcularKmAtualEstimado, calcularProximasManutencoes, getStatusColor, getStatusText };

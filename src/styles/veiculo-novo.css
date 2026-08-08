@@ -205,12 +205,29 @@
     color: white;
     font-family: "Inter", sans-serif;
     font-size: 0.95rem;
+    
 }
 
-.form__input:focus {
-    outline: none;
-    border-color: oklch(0.62 0.22 25);
+.form__input__calendar,
+input[type="date"].form__input__calendar {
+    box-sizing: border-box;
+    background-color: oklch(0.11 0.005 280);
+    border: 1px solid oklch(0.26 0.012 265);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: white;
+    font-family: "Inter", sans-serif;
+    font-size: 0.95rem;
 }
+
+input[type="date"].form__input__calendar::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    color: white;
+    opacity: 1;
+    filter: invert(1) brightness(2);
+    background-color: transparent;
+}
+
 
 .form__actions {
     display: flex;

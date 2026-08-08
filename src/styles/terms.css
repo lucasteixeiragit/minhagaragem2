@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+
+
+* { /* RESETAR AS POSICOES DOS ELEMENTOS */
+    margin: 0;
+    padding: 0;
+}
+
+
+body {
+    height: 100vh;  /* fazer com que ocupe a tela inteira do navegador */
+    background-color: oklch(0.11 0.005 280)
+}
+
+/* MAIN */
+
+.main__terms{
+    display: block;
+    background-color: white;
+}

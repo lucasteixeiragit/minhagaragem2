@@ -11,7 +11,7 @@
 // ============================================================
 
 // Importa função de cálculo de próximas manutenções
-import { calcularProximasManutencoes } from './manutencao-utils.js';
+import { calcularKmAtualEstimado, calcularProximasManutencoes } from './manutencao-utils.js';
 
 // Chave do localStorage
 const STORAGE_KEY = "minhaGaragem.veiculos";
@@ -27,6 +27,27 @@ function getVeiculos() {
 
 function salvarVeiculos(veiculos) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(veiculos));
+}
+
+function obterDataReferencia() {
+    const params = new URLSearchParams(window.location.search);
+    const dataParam = params.get('dataReferencia');
+
+    if (!dataParam) {
+        return new Date();
+    }
+
+    const partes = dataParam.split('-');
+    if (partes.length === 3) {
+        const [dia, mes, ano] = partes.map(Number);
+        const data = new Date(ano, mes - 1, dia);
+        if (!Number.isNaN(data.getTime())) {
+            return data;
+        }
+    }
+
+    const data = new Date(`${dataParam}T00:00:00`);
+    return Number.isNaN(data.getTime()) ? new Date() : data;
 }
 
 // ============================================================
@@ -61,6 +82,7 @@ if (btnAddVeiculo) {
 function renderizarAlertasResumo() {
     const veiculos = getVeiculos();
     const alertasResumo = document.getElementById('alertasResumo');
+    const dataReferencia = obterDataReferencia();
 
     // Se não há veículos, oculta seção de alertas
     if (!veiculos || veiculos.length === 0) {
@@ -76,7 +98,7 @@ function renderizarAlertasResumo() {
         if (!veiculo.intervalosManutencoesPreventivas) return;
         
         // Calcula próximas manutenções (usando manutencao-utils.js)
-        const proximasManutencoes = calcularProximasManutencoes(veiculo);
+        const proximasManutencoes = calcularProximasManutencoes(veiculo, dataReferencia);
         
         // Filtra apenas alertas (status: atrasada, urgente, alerta)
         const alertas = proximasManutencoes.filter(m => m.status !== 'ok');
@@ -135,6 +157,7 @@ function renderizarGaragem() {
     const veiculos = getVeiculos();
     const garagemVazia = document.getElementById("garagemVazia");
     const listaVeiculos = document.getElementById("listaVeiculos");
+    const dataReferencia = obterDataReferencia();
 
     // Validação: se elementos não existem no DOM, retorna
     if (!garagemVazia || !listaVeiculos) {
@@ -161,7 +184,7 @@ function renderizarGaragem() {
         // Calcula badge de alerta (número de manutenções pendentes)
         let alertaBadge = '';
         if (veiculo.intervalosManutencoesPreventivas && Object.keys(veiculo.intervalosManutencoesPreventivas).length > 0) {
-            const proximasManutencoes = calcularProximasManutencoes(veiculo);
+            const proximasManutencoes = calcularProximasManutencoes(veiculo, dataReferencia);
             const alertas = proximasManutencoes.filter(m => m.status !== 'ok');
             
             if (alertas.length > 0) {
@@ -191,7 +214,7 @@ function renderizarGaragem() {
             "</div>" +
             "<p class=\"veiculo__card__info\">" + (veiculo.marca || "") + " " + (veiculo.modelo || "") + "</p>" +
             "<p class=\"veiculo__card__info\">Ano: " + (veiculo.ano || "-") + " | Placa: " + (veiculo.placa || "-") + "</p>" +
-            "<p class=\"veiculo__card__info\">KM atual (Aproximadamente): " + (veiculo.kmAtual || 0) + "</p>" +
+            "<p class=\"veiculo__card__info\">KM atual (Aproximadamente): " + calcularKmAtualEstimado(veiculo, dataReferencia) + "</p>" +
             "<p class=\"veiculo__card__info veiculo__card__manutencoes\">Manutenções: " + totalManutencoes + "</p>" +
             "<div class=\"veiculo__card__buttons\">" +
             "<button class=\"veiculo__card__button_detalhes\" data-id=\"" + veiculo.id + "\">Ver Detalhes</button>" +
@@ -200,6 +223,7 @@ function renderizarGaragem() {
             "</div>";
     }).join("");
 
+    // excluir veiculo do array (notificacao)
     listaVeiculos.querySelectorAll(".veiculo__card__button_excluir").forEach(function (botao) {
         botao.addEventListener("click", function () {
             const confirmar = window.confirm("Tem certeza que deseja excluir este veículo?");

@@ -11,7 +11,7 @@
 //   - Botão para adicionar nova manutenção
 // ============================================================
 
-import { calcularProximasManutencoes, getStatusColor, getStatusText } from './manutencao-utils.js';
+import { calcularKmAtualEstimado, calcularProximasManutencoes, getStatusColor, getStatusText } from './manutencao-utils.js';
 
 const STORAGE_KEY = "minhaGaragem.veiculos";
 
@@ -26,6 +26,27 @@ function getVeiculos() {
 
 function salvarVeiculos(veiculos) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(veiculos));
+}
+
+function obterDataReferencia() {
+    const params = new URLSearchParams(window.location.search);
+    const dataParam = params.get('dataReferencia');
+
+    if (!dataParam) {
+        return new Date();
+    }
+
+    const partes = dataParam.split('-');
+    if (partes.length === 3) {
+        const [dia, mes, ano] = partes.map(Number);
+        const data = new Date(ano, mes - 1, dia);
+        if (!Number.isNaN(data.getTime())) {
+            return data;
+        }
+    }
+
+    const data = new Date(`${dataParam}T00:00:00`);
+    return Number.isNaN(data.getTime()) ? new Date() : data;
 }
 
 // Busca um veículo específico por ID
@@ -74,10 +95,12 @@ if (!veiculo.manutencoes) {
 
 document.getElementById('veiculoTitulo').textContent = veiculo.apelido;
 
+const dataReferencia = obterDataReferencia();
 const infoHTML = `
     <p>${veiculo.marca || ''} ${veiculo.modelo || ''}</p>
     <p>Ano: ${veiculo.ano || '-'} | Placa: ${veiculo.placa || '-'}</p>
-    <p>KM atual: ${veiculo.kmAtual || 0}</p>
+    <p>KM atual: ${calcularKmAtualEstimado(veiculo, dataReferencia)}</p>
+    <p>Data de referência: ${dataReferencia.toLocaleDateString('pt-BR')}</p>
 `;
 document.getElementById('veiculoInfo').innerHTML = infoHTML;
 
@@ -119,7 +142,7 @@ function renderizarAlertas() {
         return;
     }
 
-    const proximasManutencoes = calcularProximasManutencoes(veiculo);
+    const proximasManutencoes = calcularProximasManutencoes(veiculo, dataReferencia);
     const alertas = proximasManutencoes.filter(m => m.status !== 'ok');
 
     if (alertas.length === 0) {
