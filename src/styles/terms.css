@@ -15,6 +15,10 @@ body {
 
 /* MAIN */
 
+.main{
+    padding-bottom: 5%;
+}
+
 .main__terms{
     display: block;
     background-color: white;
@@ -26,7 +30,7 @@ body {
     margin: 0 auto;
     padding: 3rem 1.5rem 4rem;
     font-family: 'Inter', sans-serif;
-    color: #1a1a1a;
+    color: black;
     line-height: 1.7;
 }
 
