@@ -62,5 +62,13 @@
     </main>
 
     <script type="module" src="./js/veiculo-detalhes.js"></script>
+    <script>
+        (async function verificarSessao() {
+            try {
+                const res = await fetch('/api/auth/me');
+                if (!res.ok) window.location.href = '/login.html';
+            } catch (e) { window.location.href = '/login.html'; }
+        })();
+    </script>
 </body>
 </html>

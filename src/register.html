@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Minha Garagem</title>
+    <link rel="stylesheet" href="styles/auth.css">
+    <link rel="icon" type="image/png" href="assets/favicons/favicon.png">
+</head>
+<body>
+    <header class="header">
+        <div class="header__div">
+            <a href="/" class="header__home">
+                <span class="header__home__icon">🏠</span>
+                Minha Garagem
+            </a>
+            <nav class="header__nav">
+                <a href="login.html">Já tenho conta</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="auth-container">
+        <div class="auth-card">
+            <h1>Criar conta</h1>
+            <p class="subtitle">Comece a gerenciar seus veículos</p>
+
+            <div id="alert" class="alert alert-error"></div>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" name="nome" placeholder="Seu nome" required minlength="2" autocomplete="name">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" placeholder="seu@email.com" required autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" placeholder="Mínimo 8 caracteres" required minlength="8" autocomplete="new-password">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmarSenha">Confirmar senha</label>
+                    <input type="password" id="confirmarSenha" name="confirmarSenha" placeholder="Repita a senha" required minlength="8" autocomplete="new-password">
+                </div>
+
+                <button type="submit" class="btn-primary" id="btnRegister">Criar conta</button>
+            </form>
+
+            <div class="auth-links">
+                Já tem uma conta? <a href="login.html">Entrar</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ============================================================
+        // CADASTRO - Frontend
+        // ============================================================
+        const form = document.getElementById('registerForm');
+        const alertEl = document.getElementById('alert');
+        const btnRegister = document.getElementById('btnRegister');
+
+        function mostrarAlerta(mensagem, tipo = 'error') {
+            alertEl.textContent = mensagem;
+            alertEl.className = `alert alert-${tipo} show`;
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            btnRegister.disabled = true;
+            btnRegister.textContent = 'Criando conta...';
+
+            const nome = document.getElementById('nome').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value;
+            const confirmarSenha = document.getElementById('confirmarSenha').value;
+
+            // Validação no frontend (complementar ao backend)
+            if (nome.length < 2) {
+                mostrarAlerta('Informe um nome válido (mínimo 2 caracteres).');
+                btnRegister.disabled = false;
+                btnRegister.textContent = 'Criar conta';
+                return;
+            }
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                mostrarAlerta('Informe um e-mail válido.');
+                btnRegister.disabled = false;
+                btnRegister.textContent = 'Criar conta';
+                return;
+            }
+
+            if (senha.length < 8) {
+                mostrarAlerta('A senha deve ter no mínimo 8 caracteres.');
+                btnRegister.disabled = false;
+                btnRegister.textContent = 'Criar conta';
+                return;
+            }
+
+            if (senha !== confirmarSenha) {
+                mostrarAlerta('As senhas não coincidem.');
+                btnRegister.disabled = false;
+                btnRegister.textContent = 'Criar conta';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email, senha })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    mostrarAlerta(data.message || 'Erro ao criar conta.');
+                    btnRegister.disabled = false;
+                    btnRegister.textContent = 'Criar conta';
+                    return;
+                }
+
+                mostrarAlerta('Conta criada! Redirecionando para login...', 'success');
+                setTimeout(() => window.location.href = '/login.html', 1200);
+            } catch (err) {
+                mostrarAlerta('Erro de conexão. Tente novamente.');
+                btnRegister.disabled = false;
+                btnRegister.textContent = 'Criar conta';
+            }
+        });
+    </script>
+</body>
+</html>

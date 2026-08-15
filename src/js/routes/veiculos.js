@@ -15,8 +15,15 @@ import express from 'express';
 // Importa o Model Veiculo que acessa o MongoDB
 import Veiculo from '../models/Veiculo.js';
 
+// Importa o middleware de autenticação
+import { requireAuth } from '../middleware/auth.js';
+
 // Cria instância do Router
 const router = express.Router();
+
+// Aplica autenticação em TODAS as rotas deste router
+// (protege contra acesso não autenticado e IDOR)
+router.use(requireAuth);
 
 // ============================================================
 // ROTA: GET /api/veiculos
@@ -26,8 +33,8 @@ const router = express.Router();
 // RETORNA: Array de objetos completos (incluindo manutenções e intervalos)
 router.get('/', async (req, res) => {
     try {
-        // Busca todos os veículos no MongoDB
-        const veiculos = await Veiculo.buscarTodos();
+        // Busca apenas os veículos do usuário autenticado (proteção contra IDOR)
+        const veiculos = await Veiculo.buscarTodosDoProprietario(req.user._id);
         
         // Retorna JSON (status 200 implícito)
         res.json(veiculos);
@@ -49,10 +56,10 @@ router.get('/', async (req, res) => {
 // EXEMPLO: GET /api/veiculos/507f1f77bcf86cd799439011
 router.get('/:id', async (req, res) => {
     try {
-        // req.params.id extrai o ID da URL
-        const veiculo = await Veiculo.buscarPorId(req.params.id);
+        // Busca o veículo garantindo que pertence ao usuário autenticado (proteção contra IDOR)
+        const veiculo = await Veiculo.buscarPorIdEProprietario(req.params.id, req.user._id);
         
-        // Validação: Se ID não existe, retorna 404 (Not Found)
+        // Validação: Se ID não existe ou não pertence ao usuário, retorna 404
         if (!veiculo) {
             return res.status(404).json({ erro: 'Veículo não encontrado' });
         }
@@ -74,8 +81,8 @@ router.get('/:id', async (req, res) => {
 // STATUS: 201 (Created) em caso de sucesso
 router.post('/', async (req, res) => {
     try {
-        // req.body contém os dados enviados pelo frontend (parseado por express.json())
-        const resultado = await Veiculo.criar(req.body);
+        // Cria o veículo vinculado ao usuário autenticado (ownerId derivado de req.user)
+        const resultado = await Veiculo.criarDoProprietario(req.body, req.user._id);
         
         // Status 201 indica que um recurso foi CRIADO
         res.status(201).json({ 
@@ -99,9 +106,10 @@ router.post('/', async (req, res) => {
 // EXEMPLO: PUT /api/veiculos/507f1f77bcf86cd799439011 com body { apelido: "Carro Novo" }
 router.put('/:id', async (req, res) => {
     try {
-        const resultado = await Veiculo.atualizar(req.params.id, req.body);
+        // Atualiza garantindo que o veículo pertence ao usuário autenticado (proteção contra IDOR)
+        const resultado = await Veiculo.atualizarDoProprietario(req.params.id, req.user._id, req.body);
         
-        // matchedCount = 0 significa que o ID não foi encontrado
+        // matchedCount = 0 significa que o ID não foi encontrado ou não pertence ao usuário
         if (resultado.matchedCount === 0) {
             return res.status(404).json({ erro: 'Veículo não encontrado' });
         }
@@ -123,9 +131,10 @@ router.put('/:id', async (req, res) => {
 // EXEMPLO: DELETE /api/veiculos/507f1f77bcf86cd799439011
 router.delete('/:id', async (req, res) => {
     try {
-        const resultado = await Veiculo.excluir(req.params.id);
+        // Exclui garantindo que o veículo pertence ao usuário autenticado (proteção contra IDOR)
+        const resultado = await Veiculo.excluirDoProprietario(req.params.id, req.user._id);
         
-        // deletedCount = 0 significa que o ID não foi encontrado
+        // deletedCount = 0 significa que o ID não foi encontrado ou não pertence ao usuário
         if (resultado.deletedCount === 0) {
             return res.status(404).json({ erro: 'Veículo não encontrado' });
         }
@@ -151,9 +160,13 @@ router.delete('/:id', async (req, res) => {
 // EXEMPLO: POST /api/veiculos/507f1f77bcf86cd799439011/manutencoes
 router.post('/:id/manutencoes', async (req, res) => {
     try {
-        // req.params.id = ID do veículo
-        // req.body = dados da manutenção
-        await Veiculo.adicionarManutencao(req.params.id, req.body);
+        // Adiciona manutenção garantindo que o veículo pertence ao usuário autenticado (proteção contra IDOR)
+        const resultado = await Veiculo.adicionarManutencaoDoProprietario(req.params.id, req.user._id, req.body);
+        
+        // matchedCount = 0 significa que o veículo não foi encontrado ou não pertence ao usuário
+        if (resultado.matchedCount === 0) {
+            return res.status(404).json({ erro: 'Veículo não encontrado' });
+        }
         
         // Status 201 indica que um recurso foi criado
         res.status(201).json({ mensagem: 'Manutenção adicionada com sucesso' });
@@ -177,9 +190,13 @@ router.post('/:id/manutencoes', async (req, res) => {
 // EXEMPLO: DELETE /api/veiculos/507f1f77bcf86cd799439011/manutencoes/1628123456789
 router.delete('/:id/manutencoes/:manutencaoId', async (req, res) => {
     try {
-        // req.params.id = ID do veículo
-        // req.params.manutencaoId = ID da manutenção a ser removida
-        await Veiculo.excluirManutencao(req.params.id, req.params.manutencaoId);
+        // Exclui manutenção garantindo que o veículo pertence ao usuário autenticado (proteção contra IDOR)
+        const resultado = await Veiculo.excluirManutencaoDoProprietario(req.params.id, req.user._id, req.params.manutencaoId);
+        
+        // matchedCount = 0 significa que o veículo não foi encontrado ou não pertence ao usuário
+        if (resultado.matchedCount === 0) {
+            return res.status(404).json({ erro: 'Veículo não encontrado' });
+        }
         
         res.json({ mensagem: 'Manutenção excluída com sucesso' });
     } catch (error) {
@@ -205,8 +222,13 @@ router.patch('/:id/km', async (req, res) => {
         // Desestruturação: extrai kmAtual e dataLeitura do body
         const { kmAtual, dataLeitura } = req.body;
         
-        // Atualiza apenas estes 2 campos (+ timestamp atualizadoEm)
-        await Veiculo.atualizarKmAtual(req.params.id, kmAtual, dataLeitura);
+        // Atualiza garantindo que o veículo pertence ao usuário autenticado (proteção contra IDOR)
+        const resultado = await Veiculo.atualizarKmDoProprietario(req.params.id, req.user._id, kmAtual, dataLeitura);
+        
+        // matchedCount = 0 significa que o veículo não foi encontrado ou não pertence ao usuário
+        if (resultado.matchedCount === 0) {
+            return res.status(404).json({ erro: 'Veículo não encontrado' });
+        }
         
         res.json({ mensagem: 'KM atualizado com sucesso' });
     } catch (error) {

@@ -11,24 +11,18 @@
 //   - Redirecionar de volta para veiculo-detalhes.html
 // ============================================================
 
-// Chave do localStorage onde os veículos são armazenados
-const STORAGE_KEY = "minhaGaragem.veiculos";
-
 // ============================================================
-// FUNÇÕES DE ACESSO AO LOCALSTORAGE
+// FUNÇÕES DE ACESSO À API
 // ============================================================
 
-// Recupera todos os veículos do localStorage
-function getVeiculos() {
-    const dados = localStorage.getItem(STORAGE_KEY);
-    // Se existir dados, parseia JSON; senão retorna array vazio
-    return dados ? JSON.parse(dados) : [];
-}
-
-// Salva array de veículos no localStorage
-function salvarVeiculos(veiculos) {
-    // Converte objeto JavaScript para string JSON
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(veiculos));
+// Salva manutenção via API (o veículo é validado por propriedade no backend)
+async function salvarManutencao(veiculoId, dados) {
+    const res = await fetch(`/api/vehicles/${veiculoId}/maintenance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados)
+    });
+    return res;
 }
 
 // ============================================================
@@ -127,7 +121,6 @@ form.addEventListener('submit', async (event) => {
 
     // Cria objeto com dados da manutenção
     const novaManutencao = {
-        id: Date.now(),  // ID único baseado em timestamp
         data: document.getElementById('data').value,           // Data ISO (YYYY-MM-DD)
         km: document.getElementById('km').value,               // KM da manutenção
         tipo: document.getElementById('tipo').value,           // Tipo (ex: "Troca de Óleo")
@@ -137,33 +130,30 @@ form.addEventListener('submit', async (event) => {
         notaFiscalNome: file ? file.name : null  // Nome do arquivo original
     };
 
-    // Busca todos os veículos do localStorage
-    const veiculos = getVeiculos();
-    
-    // Encontra o veículo específico pelo ID
-    // String() garante comparação de tipos (ID pode ser number ou string)
-    const veiculo = veiculos.find(v => String(v.id) === String(veiculoId));
+    // Salva a manutenção via API (o backend valida a propriedade do veículo)
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Salvando...';
 
-    // Validação: Se veículo não foi encontrado (não deveria acontecer)
-    if (!veiculo) {
-        alert('Veículo não encontrado!');
-        return;
+    try {
+        const res = await salvarManutencao(veiculoId, novaManutencao);
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message || 'Erro ao salvar manutenção.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Salvar manutenção';
+            return;
+        }
+
+        // Redireciona para a página de detalhes do veículo
+        window.location.href = `./veiculo-detalhes.html?id=${veiculoId}`;
+    } catch (e) {
+        console.error('Erro ao salvar manutenção:', e);
+        alert('Erro de conexão ao salvar manutenção.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Salvar manutenção';
     }
-
-    // Se o veículo ainda não tem array de manutenções, cria um
-    if (!veiculo.manutencoes) {
-        veiculo.manutencoes = [];
-    }
-
-    // Adiciona a nova manutenção ao array
-    veiculo.manutencoes.push(novaManutencao);
-    
-    // Salva os veículos atualizados no localStorage
-    salvarVeiculos(veiculos);
-
-    // Redireciona para a página de detalhes do veículo
-    // O usuário verá a manutenção recém-adicionada na lista
-    window.location.href = `./veiculo-detalhes.html?id=${veiculoId}`;
 });
 
 // ============================================================

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração - Minha Garagem</title>
+    <link rel="stylesheet" href="styles/auth.css">
+    <link rel="icon" type="image/png" href="assets/favicons/favicon.png">
+</head>
+<body>
+    <header class="header">
+        <div class="header__div">
+            <a href="/" class="header__home">
+                <span class="header__home__icon">🏠</span>
+                Minha Garagem
+            </a>
+            <nav class="header__nav">
+                <a href="index.html">Garagem</a>
+                <a href="profile.html">Perfil</a>
+                <a href="#" id="btnLogout">Sair</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="admin-container">
+        <div id="alert" class="alert alert-error"></div>
+
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="users">Usuários</button>
+            <button class="admin-tab" data-tab="vehicles">Veículos</button>
+            <button class="admin-tab" data-tab="appointments">Atendimentos</button>
+            <button class="admin-tab" data-tab="logs">Auditoria</button>
+        </div>
+
+        <!-- ==================== USUÁRIOS ==================== -->
+        <div class="admin-panel active" id="panel-users">
+            <div class="profile-card" style="margin-bottom: 20px;">
+                <h2>Criar Usuário</h2>
+                <form id="formCriarUsuario" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 12px; align-items: end;">
+                    <div class="form-group" style="margin: 0;">
+                        <label>Nome</label>
+                        <input type="text" id="novoNome" required minlength="2">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label>E-mail</label>
+                        <input type="email" id="novoEmail" required>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label>Senha</label>
+                        <input type="password" id="novaSenha" required minlength="8">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label>Role</label>
+                        <select id="novaRole">
+                            <option value="USER">USER</option>
+                            <option value="MECANICA">MECANICA</option>
+                            <option value="ADMIN">ADMIN</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin: 0; width: auto; padding: 12px 20px;">Criar</button>
+                </form>
+            </div>
+
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyUsuarios"></tbody>
+            </table>
+        </div>
+
+        <!-- ==================== VEÍCULOS ==================== -->
+        <div class="admin-panel" id="panel-vehicles">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Apelido</th>
+                        <th>Marca/Modelo</th>
+                        <th>Placa</th>
+                        <th>KM</th>
+                        <th>Proprietário</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyVeiculos"></tbody>
+            </table>
+        </div>
+
+        <!-- ==================== ATENDIMENTOS ==================== -->
+        <div class="admin-panel" id="panel-appointments">
+            <div class="profile-card" style="margin-bottom: 20px;">
+                <h2>Novo Atendimento</h2>
+                <form id="formAtendimento" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;">
+                    <div class="form-group" style="margin: 0;">
+                        <label>Mecânica</label>
+                        <select id="selectMecanica"></select>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label>Veículo</label>
+                        <select id="selectVeiculo"></select>
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin: 0; width: auto; padding: 12px 20px;">Vincular</button>
+                </form>
+            </div>
+
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mecânica</th>
+                        <th>Veículo</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyAtendimentos"></tbody>
+            </table>
+        </div>
+
+        <!-- ==================== AUDITORIA ==================== -->
+        <div class="admin-panel" id="panel-logs">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Ação</th>
+                        <th>Recurso</th>
+                        <th>IP</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyLogs"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        // ============================================================
+        // ADMIN - Frontend
+        // ============================================================
+        const alertEl = document.getElementById('alert');
+
+        function mostrarAlerta(mensagem, tipo = 'error') {
+            alertEl.textContent = mensagem;
+            alertEl.className = `alert alert-${tipo} show`;
+            setTimeout(() => { alertEl.className = 'alert'; }, 4000);
+        }
+
+        function formatarData(iso) {
+            if (!iso) return '-';
+            const d = new Date(iso);
+            return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Verifica autenticação e role ADMIN
+        (async function verificarAdmin() {
+            try {
+                const res = await fetch('/api/auth/me');
+                if (!res.ok) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+                const data = await res.json();
+                if (data.user.role !== 'ADMIN') {
+                    window.location.href = '/index.html';
+                    return;
+                }
+                carregarUsuarios();
+                carregarVeiculos();
+                carregarAtendimentos();
+                carregarLogs();
+                carregarSelects();
+            } catch (e) {
+                window.location.href = '/login.html';
+            }
+        })();
+
+        // Logout
+        document.getElementById('btnLogout').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login.html';
+        });
+
+        // Tabs
+        document.querySelectorAll('.admin-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ==================== USUÁRIOS ====================
+        async function carregarUsuarios() {
+            try {
+                const res = await fetch('/api/admin/users');
+                if (!res.ok) throw new Error('Falha ao carregar');
+                const data = await res.json();
+                const tbody = document.getElementById('tbodyUsuarios');
+                tbody.innerHTML = '';
+
+                data.usuarios.forEach(u => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${u.nome}</td>
+                        <td>${u.email}</td>
+                        <td><span class="role-badge ${u.role}">${u.role}</span></td>
+                        <td>${u.ativo ? '<span style="color: oklch(0.75 0.12 150);">Ativo</span>' : '<span style="color: oklch(0.75 0.15 25);">Bloqueado</span>'}</td>
+                        <td>
+                            <select class="btn-small" onchange="alterarRole('${u._id}', this.value)">
+                                <option value="USER" ${u.role === 'USER' ? 'selected' : ''}>USER</option>
+                                <option value="MECANICA" ${u.role === 'MECANICA' ? 'selected' : ''}>MECANICA</option>
+                                <option value="ADMIN" ${u.role === 'ADMIN' ? 'selected' : ''}>ADMIN</option>
+                            </select>
+                            <button class="btn-small ${u.ativo ? 'danger' : 'success'}" onclick="alterarStatus('${u._id}', ${!u.ativo})">
+                                ${u.ativo ? 'Bloquear' : 'Ativar'}
+                            </button>
+                            <button class="btn-small danger" onclick="excluirUsuario('${u._id}')">Excluir</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                mostrarAlerta('Erro ao carregar usuários.');
+            }
+        }
+
+        window.alterarRole = async (id, role) => {
+            const res = await fetch(`/api/admin/users/${id}/role`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role })
+            });
+            const data = await res.json();
+            if (res.ok) { mostrarAlerta('Role atualizada!', 'success'); carregarUsuarios(); }
+            else mostrarAlerta(data.message || 'Erro ao alterar role.');
+        };
+
+        window.alterarStatus = async (id, ativo) => {
+            const res = await fetch(`/api/admin/users/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ativo })
+            });
+            const data = await res.json();
+            if (res.ok) { mostrarAlerta('Status atualizado!', 'success'); carregarUsuarios(); }
+            else mostrarAlerta(data.message || 'Erro ao alterar status.');
+        };
+
+        window.excluirUsuario = async (id) => {
+            if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
+            const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (res.ok) { mostrarAlerta('Usuário excluído!', 'success'); carregarUsuarios(); }
+            else mostrarAlerta(data.message || 'Erro ao excluir usuário.');
+        };
+
+        document.getElementById('formCriarUsuario').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('novoNome').value.trim();
+            const email = document.getElementById('novoEmail').value.trim();
+            const senha = document.getElementById('novaSenha').value;
+            const role = document.getElementById('novaRole').value;
+
+            const res = await fetch('/api/admin/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, email, senha, role })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                mostrarAlerta('Usuário criado!', 'success');
+                e.target.reset();
+                carregarUsuarios();
+                carregarSelects();
+            } else {
+                mostrarAlerta(data.message || 'Erro ao criar usuário.');
+            }
+        });
+
+        // ==================== VEÍCULOS ====================
+        async function carregarVeiculos() {
+            try {
+                const res = await fetch('/api/admin/vehicles');
+                if (!res.ok) throw new Error('Falha');
+                const data = await res.json();
+                const tbody = document.getElementById('tbodyVeiculos');
+                tbody.innerHTML = '';
+
+                data.veiculos.forEach(v => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${v.apelido || '-'}</td>
+                        <td>${v.marca || ''} ${v.modelo || ''} ${v.versao || ''}</td>
+                        <td>${v.placa || '-'}</td>
+                        <td>${v.kmAtual || 0} km</td>
+                        <td>${v.ownerId || 'Sem proprietário'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                mostrarAlerta('Erro ao carregar veículos.');
+            }
+        }
+
+        // ==================== ATENDIMENTOS ====================
+        async function carregarSelects() {
+            try {
+                const resUsers = await fetch('/api/admin/users');
+                const dataUsers = await resUsers.json();
+                const selectMec = document.getElementById('selectMecanica');
+                selectMec.innerHTML = '<option value="">Selecione...</option>';
+                dataUsers.usuarios.filter(u => u.role === 'MECANICA').forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u._id;
+                    opt.textContent = u.nome;
+                    selectMec.appendChild(opt);
+                });
+
+                const resVeh = await fetch('/api/admin/vehicles');
+                const dataVeh = await resVeh.json();
+                const selectVeh = document.getElementById('selectVeiculo');
+                selectVeh.innerHTML = '<option value="">Selecione...</option>';
+                dataVeh.veiculos.forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v._id;
+                    opt.textContent = `${v.apelido || 'Veículo'} (${v.marca || ''} ${v.modelo || ''})`;
+                    selectVeh.appendChild(opt);
+                });
+            } catch (e) {
+                mostrarAlerta('Erro ao carregar opções.');
+            }
+        }
+
+        async function carregarAtendimentos() {
+            try {
+                const res = await fetch('/api/admin/appointments');
+                if (!res.ok) throw new Error('Falha');
+                const data = await res.json();
+                const tbody = document.getElementById('tbodyAtendimentos');
+                tbody.innerHTML = '';
+
+                data.atendimentos.forEach(a => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${a.mechanicId || '-'}</td>
+                        <td>${a.vehicleId || '-'}</td>
+                        <td><span class="role-badge ${a.status === 'aberto' ? 'USER' : a.status === 'concluido' ? 'MECANICA' : 'ADMIN'}">${a.status}</span></td>
+                        <td>
+                            <button class="btn-small success" onclick="alterarStatusAtendimento('${a._id}', 'concluido')">Concluir</button>
+                            <button class="btn-small danger" onclick="alterarStatusAtendimento('${a._id}', 'cancelado')">Cancelar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                mostrarAlerta('Erro ao carregar atendimentos.');
+            }
+        }
+
+        window.alterarStatusAtendimento = async (id, status) => {
+            const res = await fetch(`/api/admin/appointments/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            const data = await res.json();
+            if (res.ok) { mostrarAlerta('Atendimento atualizado!', 'success'); carregarAtendimentos(); }
+            else mostrarAlerta(data.message || 'Erro ao atualizar atendimento.');
+        };
+
+        document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const mechanicId = document.getElementById('selectMecanica').value;
+            const vehicleId = document.getElementById('selectVeiculo').value;
+
+            if (!mechanicId || !vehicleId) {
+                mostrarAlerta('Selecione mecânica e veículo.');
+                return;
+            }
+
+            const res = await fetch('/api/admin/appointments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mechanicId, vehicleId })
+            });
+            const data = await res.json();
+            if (res.ok) { mostrarAlerta('Atendimento criado!', 'success'); carregarAtendimentos(); }
+            else mostrarAlerta(data.message || 'Erro ao criar atendimento.');
+        });
+
+        // ==================== LOGS ====================
+        async function carregarLogs() {
+            try {
+                const res = await fetch('/api/admin/audit-logs?limit=50');
+                if (!res.ok) throw new Error('Falha');
+                const data = await res.json();
+                const tbody = document.getElementById('tbodyLogs');
+                tbody.innerHTML = '';
+
+                data.logs.forEach(l => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${formatarData(l.timestamp)}</td>
+                        <td>${l.action}</td>
+                        <td>${l.resource} ${l.resourceId ? '(' + l.resourceId + ')' : ''}</td>
+                        <td>${l.ip || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                mostrarAlerta('Erro ao carregar logs.');
+            }
+        }
+    </script>
+</body>
+</html>

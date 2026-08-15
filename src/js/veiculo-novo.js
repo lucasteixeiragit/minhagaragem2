@@ -207,13 +207,18 @@ document.getElementById('cambio').addEventListener('change', async (e) => {
     }
 });
 
-function getVeiculos() {
-    const dados = localStorage.getItem(STORAGE_KEY);
-    return dados ? JSON.parse(dados) : [];
-}
+// ============================================================
+// FUNÇÕES DE ACESSO À API
+// ============================================================
 
-function salvarVeiculos(veiculos) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(veiculos));
+// Cria veículo via API (o ownerId é derivado do usuário autenticado no backend)
+async function criarVeiculo(dados) {
+    const res = await fetch('/api/vehicles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados)
+    });
+    return res;
 }
 
 function renderizarIntervalos() {
@@ -272,12 +277,11 @@ function renderizarIntervalos() {
 // ao clicar em "Adicionar" em, veiculo-novo.html, armazena os dados do veiculo e verifica se todos os dados foram preenchidos
 const form = document.getElementById("formNovoVeiculo");
 // submit = "enviar"
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
     event.preventDefault();
     //event.preventDefault() = diz ao navegador: "Não envie o formulário agora. Deixe o JavaScript controlar tudo.", por padrão depois de salvar o formulario a pagina é recarregada, assim impede o recarregamento
 
     const novoVeiculo = {
-        id: Date.now(), // gera um id unico pro veiculo
         apelido: document.getElementById("apelido").value.trim(), // .trim remove espaços do começo e do final, mas nao remove do meio. Usado para ficar bem registrado no BD
         marca: document.getElementById("marca").value,
         modelo: document.getElementById("modelo").value,
@@ -288,8 +292,7 @@ form.addEventListener("submit", (event) => {
         kmAtual: document.getElementById("kmAtual").value,
         dataLeitura: document.getElementById("dataLeitura").value,
         kmMensal: document.getElementById("kmMensal").value,
-        intervalosManutencoesPreventivas: intervalosManutencoesAtual,
-        manutencoes: [] // array de manutencoes vazia
+        intervalosManutencoesPreventivas: intervalosManutencoesAtual
     };
 
     if (!novoVeiculo.apelido) {
@@ -302,12 +305,29 @@ form.addEventListener("submit", (event) => {
         return;
     }
 
-    // salvar as informacoes anteriores na lista atualizada 
-    const veiculos = getVeiculos(); // procura veiculos salvos no BD
-    veiculos.push(novoVeiculo); // adiciona o veiculo do formulario a cima em veiculos no final do array
-    salvarVeiculos(veiculos); // salva o veiculo no BD com a function salvarVeiculos (linha 214)
+    // Salva o veículo via API (ownerId é derivado do usuário autenticado)
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Salvando...';
 
-    window.location.href = "./index.html"; // volta para pagina inical
+    try {
+        const res = await criarVeiculo(novoVeiculo);
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message || 'Erro ao salvar veículo.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Adicionar';
+            return;
+        }
+
+        window.location.href = "./index.html"; // volta para pagina inical
+    } catch (e) {
+        console.error('Erro ao salvar veículo:', e);
+        alert('Erro de conexão ao salvar veículo.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Adicionar';
+    }
 });
 
 carregarMarcas();

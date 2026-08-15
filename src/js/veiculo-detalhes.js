@@ -13,19 +13,51 @@
 
 import { calcularKmAtualEstimado, calcularProximasManutencoes, getStatusColor, getStatusText } from './manutencao-utils.js';
 
-const STORAGE_KEY = "minhaGaragem.veiculos";
-
 // ============================================================
-// FUNÇÕES DE ACESSO AO LOCALSTORAGE
+// FUNÇÕES DE ACESSO À API
 // ============================================================
 
-function getVeiculos() {
-    const dados = localStorage.getItem(STORAGE_KEY);
-    return dados ? JSON.parse(dados) : [];
+// Busca um veículo específico por ID via API
+async function getVeiculoById(id) {
+    try {
+        const res = await fetch(`/api/vehicles/${id}`);
+        if (!res.ok) {
+            if (res.status === 401) {
+                window.location.href = '/login.html';
+                return null;
+            }
+            if (res.status === 404) {
+                window.location.href = './index.html';
+                return null;
+            }
+            throw new Error('Falha ao carregar veículo');
+        }
+        const data = await res.json();
+        return data.veiculo || null;
+    } catch (e) {
+        console.error('Erro ao carregar veículo:', e);
+        return null;
+    }
 }
 
-function salvarVeiculos(veiculos) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(veiculos));
+// Exclui uma manutenção específica do veículo via API
+async function excluirManutencao(veiculoId, manutencaoId) {
+    try {
+        const res = await fetch(`/api/vehicles/${veiculoId}/maintenance/${manutencaoId}`, {
+            method: 'DELETE'
+        });
+        if (!res.ok) {
+            const data = await res.json();
+            alert(data.message || 'Erro ao excluir manutenção.');
+            return;
+        }
+        // Re-renderiza listas
+        renderizarManutencoes();
+        renderizarAlertas();
+    } catch (e) {
+        console.error('Erro ao excluir manutenção:', e);
+        alert('Erro de conexão ao excluir manutenção.');
+    }
 }
 
 function obterDataReferencia() {
@@ -49,27 +81,6 @@ function obterDataReferencia() {
     return Number.isNaN(data.getTime()) ? new Date() : data;
 }
 
-// Busca um veículo específico por ID
-function getVeiculoById(id) {
-    const veiculos = getVeiculos();
-    return veiculos.find(v => String(v.id) === String(id));
-}
-
-// Exclui uma manutenção específica do veículo
-function excluirManutencao(veiculoId, manutencaoId) {
-    const veiculos = getVeiculos();
-    const veiculo = veiculos.find(v => String(v.id) === String(veiculoId));
-    
-    if (veiculo && veiculo.manutencoes) {
-        // Remove manutenção do array
-        veiculo.manutencoes = veiculo.manutencoes.filter(m => String(m.id) !== String(manutencaoId));
-        salvarVeiculos(veiculos);
-        // Re-renderiza listas
-        renderizarManutencoes();
-        renderizarAlertas();
-    }
-}
-
 const urlParams = new URLSearchParams(window.location.search);
 const veiculoId = urlParams.get('id');
 
@@ -77,36 +88,40 @@ if (!veiculoId) {
     window.location.href = './index.html';
 }
 
-const veiculo = getVeiculoById(veiculoId);
-
-if (!veiculo) {
-    window.location.href = './index.html';
-}
-
-if (!veiculo.manutencoes) {
-    veiculo.manutencoes = [];
-    const veiculos = getVeiculos();
-    const index = veiculos.findIndex(v => String(v.id) === String(veiculoId));
-    if (index !== -1) {
-        veiculos[index] = veiculo;
-        salvarVeiculos(veiculos);
-    }
-}
-
-document.getElementById('veiculoTitulo').textContent = veiculo.apelido;
-
+// Variável global do veículo (preenchida assincronamente)
+let veiculo = null;
 const dataReferencia = obterDataReferencia();
-const infoHTML = `
-    <p>${veiculo.marca || ''} ${veiculo.modelo || ''}</p>
-    <p>Ano: ${veiculo.ano || '-'} | Placa: ${veiculo.placa || '-'}</p>
-    <p>KM atual: ${calcularKmAtualEstimado(veiculo, dataReferencia)}</p>
-    <p>Data de referência: ${dataReferencia.toLocaleDateString('pt-BR')}</p>
-`;
-document.getElementById('veiculoInfo').innerHTML = infoHTML;
 
-document.getElementById('btnAdicionarManutencao').addEventListener('click', () => {
-    window.location.href = `./manutencao-nova.html?veiculoId=${veiculoId}`;
-});
+// Carrega o veículo da API e renderiza a página
+(async function carregarVeiculo() {
+    veiculo = await getVeiculoById(veiculoId);
+
+    if (!veiculo) {
+        window.location.href = './index.html';
+        return;
+    }
+
+    if (!veiculo.manutencoes) {
+        veiculo.manutencoes = [];
+    }
+
+    document.getElementById('veiculoTitulo').textContent = veiculo.apelido;
+
+    const infoHTML = `
+        <p>${veiculo.marca || ''} ${veiculo.modelo || ''}</p>
+        <p>Ano: ${veiculo.ano || '-'} | Placa: ${veiculo.placa || '-'}</p>
+        <p>KM atual: ${calcularKmAtualEstimado(veiculo, dataReferencia)}</p>
+        <p>Data de referência: ${dataReferencia.toLocaleDateString('pt-BR')}</p>
+    `;
+    document.getElementById('veiculoInfo').innerHTML = infoHTML;
+
+    document.getElementById('btnAdicionarManutencao').addEventListener('click', () => {
+        window.location.href = `./manutencao-nova.html?veiculoId=${veiculoId}`;
+    });
+
+    renderizarAlertas();
+    renderizarManutencoes();
+})();
 
 // ============================================================
 // FUNÇÕES AUXILIARES DE FORMATAÇÃO
@@ -133,7 +148,6 @@ function formatarMoeda(valor) {
 // ============================================================
 // Renderiza seção de alertas de manutenção (atrasadas, urgentes, em breve)
 function renderizarAlertas() {
-    const veiculo = getVeiculoById(veiculoId);
     const alertasSection = document.getElementById('alertasSection');
     const alertasLista = document.getElementById('alertasLista');
 
@@ -186,7 +200,6 @@ function renderizarAlertas() {
 }
 
 function renderizarManutencoes() {
-    const veiculo = getVeiculoById(veiculoId);
     const manutencoesVazio = document.getElementById('manutencoesVazio');
     const manutencoesLista = document.getElementById('manutencoesLista');
 
@@ -251,6 +264,3 @@ function renderizarManutencoes() {
         });
     });
 }
-
-renderizarAlertas();
-renderizarManutencoes();

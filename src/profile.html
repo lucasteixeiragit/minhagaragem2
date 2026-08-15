@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil - Minha Garagem</title>
+    <link rel="stylesheet" href="styles/auth.css">
+    <link rel="icon" type="image/png" href="assets/favicons/favicon.png">
+</head>
+<body>
+    <header class="header">
+        <div class="header__div">
+            <a href="/" class="header__home">
+                <span class="header__home__icon">🏠</span>
+                Minha Garagem
+            </a>
+            <nav class="header__nav">
+                <a href="index.html">Garagem</a>
+                <a href="profile.html">Perfil</a>
+                <a href="#" id="btnLogout">Sair</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="profile-container">
+        <div id="alert" class="alert alert-error"></div>
+
+        <div class="profile-card">
+            <h2>Meu Perfil</h2>
+            <div class="profile-info">
+                <div class="info-item">
+                    <div class="label">Nome</div>
+                    <div class="value" id="nomeUsuario">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">E-mail</div>
+                    <div class="value" id="emailUsuario">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Tipo de conta</div>
+                    <div class="value"><span class="role-badge" id="roleUsuario">-</span></div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Membro desde</div>
+                    <div class="value" id="criadoEm">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <h2>Alterar Nome</h2>
+            <form id="formNome">
+                <div class="form-group">
+                    <label for="novoNome">Novo nome</label>
+                    <input type="text" id="novoNome" placeholder="Seu novo nome" required minlength="2">
+                </div>
+                <button type="submit" class="btn-primary">Salvar nome</button>
+            </form>
+        </div>
+
+        <div class="profile-card">
+            <h2>Alterar Senha</h2>
+            <form id="formSenha">
+                <div class="form-group">
+                    <label for="senhaAtual">Senha atual</label>
+                    <input type="password" id="senhaAtual" required autocomplete="current-password">
+                </div>
+                <div class="form-group">
+                    <label for="novaSenha">Nova senha</label>
+                    <input type="password" id="novaSenha" required minlength="8" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label for="confirmarNovaSenha">Confirmar nova senha</label>
+                    <input type="password" id="confirmarNovaSenha" required minlength="8" autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn-primary">Alterar senha</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // ============================================================
+        // PERFIL - Frontend
+        // ============================================================
+        const alertEl = document.getElementById('alert');
+
+        function mostrarAlerta(mensagem, tipo = 'error') {
+            alertEl.textContent = mensagem;
+            alertEl.className = `alert alert-${tipo} show`;
+            setTimeout(() => { alertEl.className = 'alert'; }, 4000);
+        }
+
+        function formatarData(iso) {
+            if (!iso) return '-';
+            const d = new Date(iso);
+            return d.toLocaleDateString('pt-BR');
+        }
+
+        // Verifica autenticação e carrega dados
+        (async function carregarPerfil() {
+            try {
+                const res = await fetch('/api/auth/me');
+                if (!res.ok) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+                const data = await res.json();
+                const u = data.user;
+
+                document.getElementById('nomeUsuario').textContent = u.nome;
+                document.getElementById('emailUsuario').textContent = u.email;
+                document.getElementById('roleUsuario').textContent = u.role;
+                document.getElementById('roleUsuario').className = `role-badge ${u.role}`;
+                document.getElementById('criadoEm').textContent = formatarData(u.createdAt);
+                document.getElementById('novoNome').value = u.nome;
+            } catch (e) {
+                window.location.href = '/login.html';
+            }
+        })();
+
+        // Logout
+        document.getElementById('btnLogout').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login.html';
+        });
+
+        // Alterar nome
+        document.getElementById('formNome').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('novoNome').value.trim();
+            if (nome.length < 2) {
+                mostrarAlerta('Informe um nome válido.');
+                return;
+            }
+            const res = await fetch('/api/user', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                mostrarAlerta('Nome atualizado!', 'success');
+                document.getElementById('nomeUsuario').textContent = nome;
+            } else {
+                mostrarAlerta(data.message || 'Erro ao atualizar nome.');
+            }
+        });
+
+        // Alterar senha
+        document.getElementById('formSenha').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const senhaAtual = document.getElementById('senhaAtual').value;
+            const novaSenha = document.getElementById('novaSenha').value;
+            const confirmar = document.getElementById('confirmarNovaSenha').value;
+
+            if (novaSenha.length < 8) {
+                mostrarAlerta('A nova senha deve ter no mínimo 8 caracteres.');
+                return;
+            }
+            if (novaSenha !== confirmar) {
+                mostrarAlerta('As senhas não coincidem.');
+                return;
+            }
+
+            const res = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ senhaAtual, novaSenha })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                mostrarAlerta('Senha alterada com sucesso!', 'success');
+                document.getElementById('formSenha').reset();
+            } else {
+                mostrarAlerta(data.message || 'Erro ao alterar senha.');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -283,6 +283,122 @@ class Veiculo {
             }
         );
     }
+
+    // ============================================================
+    // MÉTODOS COM ESCOPO DE PROPRIETÁRIO (SEGURANÇA)
+    // ============================================================
+    // Estes métodos recebem ownerId e SEMPRE filtram por ele.
+    // Mesmo que o frontend envie o ID de outro veículo, a consulta
+    // não encontrará o registro (proteção contra IDOR).
+    // ============================================================
+
+    // Cria um veículo vinculado ao proprietário autenticado
+    static async criarDoProprietario(veiculo, ownerId) {
+        const db = getBanco();
+        const resultado = await db.collection(COLECAO).insertOne({
+            ...veiculo,
+            ownerId: new ObjectId(ownerId),
+            criadoEm: new Date(),
+            atualizadoEm: new Date()
+        });
+        return resultado;
+    }
+
+    // Lista apenas os veículos do proprietário
+    static async buscarTodosDoProprietario(ownerId) {
+        const db = getBanco();
+        return await db.collection(COLECAO)
+            .find({ ownerId: new ObjectId(ownerId) })
+            .toArray();
+    }
+
+    // Busca um veículo garantindo que pertence ao proprietário
+    static async buscarPorIdEProprietario(id, ownerId) {
+        const db = getBanco();
+        try {
+            return await db.collection(COLECAO).findOne({
+                _id: new ObjectId(id),
+                ownerId: new ObjectId(ownerId)
+            });
+        } catch {
+            return null;
+        }
+    }
+
+    // Atualiza um veículo garantindo que pertence ao proprietário
+    static async atualizarDoProprietario(id, ownerId, dadosAtualizados) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(id), ownerId: new ObjectId(ownerId) },
+            { $set: { ...dadosAtualizados, atualizadoEm: new Date() } }
+        );
+    }
+
+    // Exclui um veículo garantindo que pertence ao proprietário
+    static async excluirDoProprietario(id, ownerId) {
+        const db = getBanco();
+        return await db.collection(COLECAO).deleteOne({
+            _id: new ObjectId(id),
+            ownerId: new ObjectId(ownerId)
+        });
+    }
+
+    // Adiciona manutenção garantindo que o veículo pertence ao proprietário
+    static async adicionarManutencaoDoProprietario(veiculoId, ownerId, manutencao) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(veiculoId), ownerId: new ObjectId(ownerId) },
+            {
+                $push: {
+                    manutencoes: {
+                        ...manutencao,
+                        id: new ObjectId().toString(),
+                        criadaEm: new Date()
+                    }
+                },
+                $set: { atualizadoEm: new Date() }
+            }
+        );
+    }
+
+    // Exclui manutenção garantindo que o veículo pertence ao proprietário
+    static async excluirManutencaoDoProprietario(veiculoId, ownerId, manutencaoId) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(veiculoId), ownerId: new ObjectId(ownerId) },
+            {
+                $pull: { manutencoes: { id: manutencaoId } },
+                $set: { atualizadoEm: new Date() }
+            }
+        );
+    }
+
+    // Atualiza KM garantindo que o veículo pertence ao proprietário
+    static async atualizarKmDoProprietario(veiculoId, ownerId, kmAtual, dataLeitura) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(veiculoId), ownerId: new ObjectId(ownerId) },
+            {
+                $set: { kmAtual, dataLeitura, atualizadoEm: new Date() }
+            }
+        );
+    }
+
+    // Busca um veículo por ID sem filtro de proprietário (uso interno/admin)
+    static async buscarPorIdAdmin(id) {
+        const db = getBanco();
+        try {
+            return await db.collection(COLECAO).findOne({ _id: new ObjectId(id) });
+        } catch {
+            return null;
+        }
+    }
+
+    // Lista todos os veículos (uso administrativo)
+    static async listarTodosAdmin() {
+        const db = getBanco();
+        return await db.collection(COLECAO).find().toArray();
+    }
 }
 
 // ============================================================

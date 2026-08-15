@@ -13,20 +13,50 @@
 // Importa função de cálculo de próximas manutenções
 import { calcularKmAtualEstimado, calcularProximasManutencoes } from './manutencao-utils.js';
 
-// Chave do localStorage
-const STORAGE_KEY = "minhaGaragem.veiculos";
-
 // ============================================================
-// FUNÇÕES DE ACESSO AO LOCALSTORAGE
+// FUNÇÕES DE ACESSO À API
 // ============================================================
 
-function getVeiculos() {
-    const dados = localStorage.getItem(STORAGE_KEY);
-    return dados ? JSON.parse(dados) : [];
+// Cache em memória dos veículos (evita múltiplas requisições)
+let veiculosCache = null;
+
+// Busca veículos do usuário autenticado na API
+async function getVeiculos() {
+    if (veiculosCache) return veiculosCache;
+
+    try {
+        const res = await fetch('/api/vehicles');
+        if (!res.ok) {
+            if (res.status === 401) {
+                window.location.href = '/login.html';
+                return [];
+            }
+            throw new Error('Falha ao carregar veículos');
+        }
+        const data = await res.json();
+        veiculosCache = data.veiculos || [];
+        return veiculosCache;
+    } catch (e) {
+        console.error('Erro ao carregar veículos:', e);
+        return [];
+    }
 }
 
-function salvarVeiculos(veiculos) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(veiculos));
+// Exclui veículo via API
+async function excluirVeiculo(id) {
+    try {
+        const res = await fetch(`/api/vehicles/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+            const data = await res.json();
+            alert(data.message || 'Erro ao excluir veículo.');
+            return;
+        }
+        veiculosCache = null; // Invalida cache
+        renderizarGaragem();
+    } catch (e) {
+        console.error('Erro ao excluir veículo:', e);
+        alert('Erro de conexão ao excluir veículo.');
+    }
 }
 
 function obterDataReferencia() {
@@ -51,19 +81,6 @@ function obterDataReferencia() {
 }
 
 // ============================================================
-// FUNÇÃO: excluirVeiculo(id)
-// ============================================================
-// Remove veículo do array e re-renderiza a lista
-function excluirVeiculo(id) {
-    // Filtra removendo o veículo com o ID especificado
-    const veiculos = getVeiculos().filter(function (veiculo) {
-        return String(veiculo.id) !== String(id);
-    });
-    salvarVeiculos(veiculos);
-    renderizarGaragem(); // Atualiza a UI
-}
-
-// ============================================================
 // BOTÃO "ADICIONAR VEÍCULO"
 // ============================================================
 // Redireciona para página de cadastro de novo veículo
@@ -79,8 +96,8 @@ if (btnAddVeiculo) {
 // ============================================================
 // Exibe seção de resumo de alertas no topo da página
 // Mostra quantas manutenções pendentes cada veículo tem
-function renderizarAlertasResumo() {
-    const veiculos = getVeiculos();
+async function renderizarAlertasResumo() {
+    const veiculos = await getVeiculos();
     const alertasResumo = document.getElementById('alertasResumo');
     const dataReferencia = obterDataReferencia();
 
@@ -138,7 +155,7 @@ function renderizarAlertasResumo() {
                 }
 
                 return `
-                    <div class="alerta__resumo__item" onclick="window.location.href='./veiculo-detalhes.html?id=${veiculo.id}'">
+                    <div class="alerta__resumo__item" onclick="window.location.href='./veiculo-detalhes.html?id=${veiculo._id}'">
                         <span class="alerta__resumo__veiculo">${veiculo.apelido}</span> — ${mensagem}
                         <span class="alerta__resumo__contador">${alertas.length}</span>
                     </div>
@@ -153,8 +170,8 @@ function renderizarAlertasResumo() {
 // ============================================================
 // Renderiza lista de veículos em cards na home
 // Exibe badges de alertas em cada card
-function renderizarGaragem() {
-    const veiculos = getVeiculos();
+async function renderizarGaragem() {
+    const veiculos = await getVeiculos();
     const garagemVazia = document.getElementById("garagemVazia");
     const listaVeiculos = document.getElementById("listaVeiculos");
     const dataReferencia = obterDataReferencia();
@@ -217,8 +234,8 @@ function renderizarGaragem() {
             "<p class=\"veiculo__card__info\">KM atual (Aproximadamente): " + calcularKmAtualEstimado(veiculo, dataReferencia) + "</p>" +
             "<p class=\"veiculo__card__info veiculo__card__manutencoes\">Manutenções: " + totalManutencoes + "</p>" +
             "<div class=\"veiculo__card__buttons\">" +
-            "<button class=\"veiculo__card__button_detalhes\" data-id=\"" + veiculo.id + "\">Ver Detalhes</button>" +
-            "<button class=\"veiculo__card__button_excluir\" data-id=\"" + veiculo.id + "\">Excluir</button>" +
+            "<button class=\"veiculo__card__button_detalhes\" data-id=\"" + veiculo._id + "\">Ver Detalhes</button>" +
+            "<button class=\"veiculo__card__button_excluir\" data-id=\"" + veiculo._id + "\">Excluir</button>" +
             "</div>" +
             "</div>";
     }).join("");
