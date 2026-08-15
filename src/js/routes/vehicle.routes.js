@@ -14,6 +14,7 @@ import express from 'express';
 import Veiculo from '../models/Veiculo.js';
 import { requireAuth } from '../middleware/auth.js';
 import { registrarAuditoria } from '../utils/audit.js';
+import { verificarVinculoAtivo, obterVeiculosAcessiveisParaMecanica } from '../utils/authorization.js';
 
 const router = express.Router();
 
@@ -42,11 +43,24 @@ function extrairCamposVeiculo(body) {
 
 // ============================================================
 // GET /api/vehicles
-// PROPÓSITO: Lista os veículos do usuário autenticado
+// PROPÓSITO: Lista os veículos acessíveis ao usuário autenticado
+// REGRAS DE ACESSO (Fase 5 - Vínculos):
+//   - USER: apenas os próprios veículos (ownerId)
+//   - MECANICA: veículos de clientes com vínculo ATIVO com ela
+//   - ADMIN: todos os veículos
 // ============================================================
 router.get('/', requireAuth, async (req, res) => {
     try {
-        const veiculos = await Veiculo.buscarTodosDoProprietario(req.user._id);
+        let veiculos;
+
+        if (req.user.role === 'ADMIN') {
+            veiculos = await Veiculo.listarTodosAdmin();
+        } else if (req.user.role === 'MECANICA') {
+            veiculos = await obterVeiculosAcessiveisParaMecanica(req.user._id);
+        } else {
+            veiculos = await Veiculo.buscarTodosDoProprietario(req.user._id);
+        }
+
         res.json({ success: true, veiculos });
     } catch (error) {
         console.error('Erro ao listar veículos:', error);
@@ -56,10 +70,33 @@ router.get('/', requireAuth, async (req, res) => {
 
 // ============================================================
 // GET /api/vehicles/:id
-// PROPÓSITO: Retorna um veículo do usuário autenticado
+// PROPÓSITO: Retorna um veículo específico
+// REGRAS DE ACESSO (Fase 5 - Vínculos):
+//   - USER dono: acesso total ao próprio veículo
+//   - MECANICA: apenas se houver vínculo ATIVO com o proprietário
+//     (sem vínculo ativo = 403, sem vazar se o veículo existe)
+//   - ADMIN: acesso total
 // ============================================================
 router.get('/:id', requireAuth, async (req, res) => {
     try {
+        if (req.user.role === 'ADMIN') {
+            const veiculo = await Veiculo.buscarPorIdAdmin(req.params.id);
+            if (!veiculo) {
+                return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
+            }
+            return res.json({ success: true, veiculo });
+        }
+
+        if (req.user.role === 'MECANICA') {
+            const veiculo = await Veiculo.buscarPorIdAdmin(req.params.id);
+            const vinculo = veiculo ? await verificarVinculoAtivo(veiculo.ownerId, req.user._id) : null;
+            if (!vinculo) {
+                return res.status(403).json({ success: false, message: 'Você não tem acesso a este veículo.' });
+            }
+            return res.json({ success: true, veiculo });
+        }
+
+        // USER: apenas o próprio veículo (proteção contra IDOR)
         const veiculo = await Veiculo.buscarPorIdEProprietario(req.params.id, req.user._id);
         if (!veiculo) {
             return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
@@ -105,16 +142,33 @@ router.post('/', requireAuth, async (req, res) => {
 
 // ============================================================
 // PUT /api/vehicles/:id
-// PROPÓSITO: Atualiza um veículo do usuário autenticado
+// PROPÓSITO: Atualiza um veículo
+// REGRAS DE ACESSO (Fase 5 - Vínculos):
+//   - USER dono: pode atualizar o próprio veículo
+//   - MECANICA: pode atualizar apenas se houver vínculo ATIVO com o proprietário
+//   - ADMIN: pode atualizar qualquer veículo
 // ============================================================
 router.put('/:id', requireAuth, async (req, res) => {
     try {
         const dados = extrairCamposVeiculo(req.body);
 
-        const resultado = await Veiculo.atualizarDoProprietario(req.params.id, req.user._id, dados);
-
-        if (resultado.matchedCount === 0) {
-            return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
+        if (req.user.role === 'ADMIN') {
+            const resultado = await Veiculo.atualizar(req.params.id, dados);
+            if (resultado.matchedCount === 0) {
+                return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
+            }
+        } else if (req.user.role === 'MECANICA') {
+            const veiculo = await Veiculo.buscarPorIdAdmin(req.params.id);
+            const vinculo = veiculo ? await verificarVinculoAtivo(veiculo.ownerId, req.user._id) : null;
+            if (!vinculo) {
+                return res.status(403).json({ success: false, message: 'Você não tem acesso a este veículo.' });
+            }
+            await Veiculo.atualizar(req.params.id, dados);
+        } else {
+            const resultado = await Veiculo.atualizarDoProprietario(req.params.id, req.user._id, dados);
+            if (resultado.matchedCount === 0) {
+                return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
+            }
         }
 
         await registrarAuditoria({
@@ -135,13 +189,28 @@ router.put('/:id', requireAuth, async (req, res) => {
 
 // ============================================================
 // DELETE /api/vehicles/:id
-// PROPÓSITO: Exclui um veículo do usuário autenticado
+// PROPÓSITO: Exclui um veículo
+// REGRAS DE ACESSO (Fase 5 - Vínculos):
+//   - USER dono: pode excluir o próprio veículo
+//   - ADMIN: pode excluir qualquer veículo
+//   - MECANICA: não tem permissão de exclusão (fora do escopo do vínculo)
 // ============================================================
 router.delete('/:id', requireAuth, async (req, res) => {
     try {
-        const resultado = await Veiculo.excluirDoProprietario(req.params.id, req.user._id);
+        if (req.user.role === 'MECANICA') {
+            return res.status(403).json({ success: false, message: 'Mecânicas não podem excluir veículos.' });
+        }
 
-        if (resultado.deletedCount === 0) {
+        let deletedCount;
+        if (req.user.role === 'ADMIN') {
+            const resultado = await Veiculo.excluir(req.params.id);
+            deletedCount = resultado.deletedCount;
+        } else {
+            const resultado = await Veiculo.excluirDoProprietario(req.params.id, req.user._id);
+            deletedCount = resultado.deletedCount;
+        }
+
+        if (deletedCount === 0) {
             return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
         }
 
