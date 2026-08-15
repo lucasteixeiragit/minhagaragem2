@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Clientes - Minha Garagem</title>
+    <link rel="stylesheet" href="styles/auth.css">
+    <link rel="icon" type="image/png" href="assets/favicons/favicon.png">
+</head>
+<body>
+    <header class="header">
+        <div class="header__div">
+            <a href="/" class="header__home">
+                <span class="header__home__icon">🏠</span>
+                Minha Garagem
+            </a>
+            <nav class="header__nav">
+                <a href="mechanic.html">Veículos</a>
+                <a href="meus-clientes.html">Meus Clientes</a>
+                <a href="profile.html">Perfil</a>
+                <a href="#" id="btnLogout">Sair</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="mechanic-container">
+        <div id="alert" class="alert alert-error"></div>
+
+        <div class="profile-card vinculos-section">
+            <h2>Convidar Cliente</h2>
+            <form id="formConvidar" class="busca-form">
+                <input type="email" id="emailCliente" placeholder="E-mail do cliente" required>
+                <button type="submit">Enviar convite</button>
+            </form>
+        </div>
+
+        <div class="profile-card vinculos-section">
+            <h2>Solicitações recebidas</h2>
+            <div id="listaSolicitacoesRecebidas"></div>
+        </div>
+
+        <div class="profile-card vinculos-section">
+            <h2>Convites enviados</h2>
+            <div id="listaConvitesEnviados"></div>
+        </div>
+
+        <div class="profile-card vinculos-section">
+            <h2>Clientes vinculados</h2>
+            <div id="listaClientesAtivos"></div>
+        </div>
+    </main>
+
+    <script>
+        // ============================================================
+        // MEUS CLIENTES (MECÂNICA) - Frontend
+        // ============================================================
+        const alertEl = document.getElementById('alert');
+        let usuarioAtual = null;
+        let clientesMap = {}; // id -> { id, nome, email }
+
+        function mostrarAlerta(mensagem, tipo = 'error') {
+            alertEl.textContent = mensagem;
+            alertEl.className = `alert alert-${tipo} show`;
+            setTimeout(() => { alertEl.className = 'alert'; }, 4000);
+        }
+
+        function formatarData(iso) {
+            if (!iso) return '-';
+            return new Date(iso).toLocaleDateString('pt-BR');
+        }
+
+        // Verifica autenticação e role MECANICA/ADMIN
+        (async function iniciar() {
+            try {
+                const res = await fetch('/api/auth/me');
+                if (!res.ok) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+                const data = await res.json();
+                usuarioAtual = data.user;
+
+                if (usuarioAtual.role !== 'MECANICA' && usuarioAtual.role !== 'ADMIN') {
+                    window.location.href = '/index.html';
+                    return;
+                }
+
+                await carregarVinculos();
+            } catch (e) {
+                window.location.href = '/login.html';
+            }
+        })();
+
+        document.getElementById('btnLogout').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login.html';
+        });
+
+        // Busca cliente por e-mail e envia CONVITE
+        document.getElementById('formConvidar').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('emailCliente').value.trim();
+            if (!email) {
+                mostrarAlerta('Informe o e-mail do cliente.');
+                return;
+            }
+
+            try {
+                const resBusca = await fetch(`/api/user/buscar-por-email?email=${encodeURIComponent(email)}`);
+                const dataBusca = await resBusca.json();
+
+                if (!resBusca.ok) {
+                    mostrarAlerta(dataBusca.message || 'Cliente não encontrado.');
+                    return;
+                }
+
+                const cliente = dataBusca.usuario;
+
+                const resVinculo = await fetch('/api/vinculos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuarioId: cliente.id, tipo: 'CONVITE' })
+                });
+                const dataVinculo = await resVinculo.json();
+
+                if (resVinculo.ok) {
+                    mostrarAlerta(`Convite enviado para ${cliente.nome}!`, 'success');
+                    document.getElementById('formConvidar').reset();
+                    await carregarVinculos();
+                } else {
+                    mostrarAlerta(dataVinculo.message || 'Erro ao enviar convite.');
+                }
+            } catch (e) {
+                mostrarAlerta('Erro ao enviar convite.');
+            }
+        });
+
+        // Busca dados (nome/email) de um cliente com o qual já existe vínculo
+        async function buscarDadosCliente(usuarioId) {
+            if (clientesMap[usuarioId]) return clientesMap[usuarioId];
+            try {
+                const res = await fetch(`/api/user/${usuarioId}`);
+                if (!res.ok) return null;
+                const data = await res.json();
+                clientesMap[usuarioId] = data.usuario;
+                return data.usuario;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Carrega todos os vínculos da mecânica e organiza em seções
+        async function carregarVinculos() {
+            try {
+                const [resTodos, resAtivos] = await Promise.all([
+                    fetch('/api/vinculos'),
+                    fetch('/api/vinculos/meus-clientes')
+                ]);
+
+                const dataTodos = await resTodos.json();
+                const dataAtivos = await resAtivos.json();
+
+                const vinculos = dataTodos.vinculos || [];
+
+                // Solicitações recebidas: PENDENTE + tipo SOLICITACAO (cliente solicitou a mecânica)
+                const solicitacoesRecebidas = vinculos.filter((v) => v.status === 'PENDENTE' && v.tipo === 'SOLICITACAO');
+
+                // Convites enviados pela própria mecânica: PENDENTE + tipo CONVITE
+                const convitesEnviados = vinculos.filter((v) => v.status === 'PENDENTE' && v.tipo === 'CONVITE');
+
+                await renderizarSolicitacoesRecebidas(solicitacoesRecebidas);
+                await renderizarConvitesEnviados(convitesEnviados);
+                renderizarClientesAtivos(dataAtivos.clientes || []);
+            } catch (e) {
+                mostrarAlerta('Erro ao carregar vínculos.');
+            }
+        }
+
+        async function renderizarSolicitacoesRecebidas(lista) {
+            const container = document.getElementById('listaSolicitacoesRecebidas');
+            container.innerHTML = '';
+
+            if (lista.length === 0) {
+                container.innerHTML = '<p class="vinculo-vazio">Nenhuma solicitação pendente.</p>';
+                return;
+            }
+
+            for (const v of lista) {
+                const cliente = await buscarDadosCliente(v.usuarioId);
+                const card = document.createElement('div');
+                card.className = 'vinculo-card';
+                card.innerHTML = `
+                    <div class="vinculo-info">
+                        <h3>${cliente ? cliente.nome : 'Cliente'}</h3>
+                        <p>${cliente ? cliente.email : ''} — solicitado em ${formatarData(v.criadoEm)} <span class="status-badge ${v.status}">${v.status}</span></p>
+                    </div>
+                    <p style="color: oklch(0.6 0.01 280); font-size: 0.85rem;">Aguardando o cliente aceitar o vínculo.</p>
+                `;
+                container.appendChild(card);
+            }
+        }
+
+        async function renderizarConvitesEnviados(lista) {
+            const container = document.getElementById('listaConvitesEnviados');
+            container.innerHTML = '';
+
+            if (lista.length === 0) {
+                container.innerHTML = '<p class="vinculo-vazio">Nenhum convite pendente.</p>';
+                return;
+            }
+
+            for (const v of lista) {
+                const cliente = await buscarDadosCliente(v.usuarioId);
+                const card = document.createElement('div');
+                card.className = 'vinculo-card';
+                card.innerHTML = `
+                    <div class="vinculo-info">
+                        <h3>${cliente ? cliente.nome : 'Cliente'}</h3>
+                        <p>${cliente ? cliente.email : ''} — convidado em ${formatarData(v.criadoEm)} <span class="status-badge ${v.status}">${v.status}</span></p>
+                    </div>
+                    <p style="color: oklch(0.6 0.01 280); font-size: 0.85rem;">Aguardando o cliente aceitar o convite.</p>
+                `;
+                container.appendChild(card);
+            }
+        }
+
+        function renderizarClientesAtivos(lista) {
+            const container = document.getElementById('listaClientesAtivos');
+            container.innerHTML = '';
+
+            if (lista.length === 0) {
+                container.innerHTML = '<p class="vinculo-vazio">Você ainda não tem clientes vinculados.</p>';
+                return;
+            }
+
+            lista.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'vinculo-card';
+                const cliente = item.cliente || {};
+                card.innerHTML = `
+                    <div class="vinculo-info">
+                        <h3>${cliente.nome || 'Cliente'}</h3>
+                        <p>${cliente.email || ''} — vinculado desde ${formatarData(item.criadoEm)} <span class="status-badge ${item.status}">${item.status}</span></p>
+                    </div>
+                    <div class="vinculo-actions">
+                        <button class="btn-small danger" onclick="desativarVinculo('${item.vinculoId}')">Desvincular</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        window.desativarVinculo = async (vinculoId) => {
+            if (!confirm('Deseja realmente desvincular este cliente?')) return;
+            try {
+                const res = await fetch(`/api/vinculos/${vinculoId}/desativar`, { method: 'PATCH' });
+                const data = await res.json();
+                if (res.ok) {
+                    mostrarAlerta('Vínculo desativado.', 'success');
+                    await carregarVinculos();
+                } else {
+                    mostrarAlerta(data.message || 'Erro ao desativar vínculo.');
+                }
+            } catch (e) {
+                mostrarAlerta('Erro ao desativar vínculo.');
+            }
+        };
+    </script>
+</body>
+</html>

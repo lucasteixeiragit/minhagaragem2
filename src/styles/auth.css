@@ -445,6 +445,143 @@ body {
     font-size: 0.85rem;
 }
 
+/* ===================== VÍNCULOS (Cliente ↔ Mecânica) ====================== */
+.vinculos-section {
+    margin-bottom: 32px;
+}
+
+.vinculos-section h2 {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.6rem;
+    color: oklch(0.62 0.22 25);
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+}
+
+.busca-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.busca-form input,
+.busca-form select {
+    flex: 1;
+    min-width: 220px;
+    padding: 12px 14px;
+    background-color: oklch(0.2 0.01 280);
+    border: 1px solid oklch(0.3 0.01 280);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.95rem;
+    font-family: "Inter", sans-serif;
+}
+
+.busca-form input:focus,
+.busca-form select:focus {
+    outline: none;
+    border-color: oklch(0.62 0.22 25);
+}
+
+.busca-form button {
+    padding: 12px 22px;
+    background-color: oklch(0.62 0.22 25);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: "Inter", sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.busca-form button:hover {
+    background-color: oklch(0.55 0.2 25);
+}
+
+.busca-form button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.vinculo-card {
+    background-color: oklch(0.16 0.008 280);
+    border: 1px solid oklch(0.26 0.012 265);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    transition: border-color 0.2s;
+}
+
+.vinculo-card:hover {
+    border-color: oklch(0.62 0.22 25 / 50%);
+}
+
+.vinculo-card .vinculo-info h3 {
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+}
+
+.vinculo-card .vinculo-info p {
+    color: oklch(0.6 0.01 280);
+    font-size: 0.85rem;
+}
+
+.vinculo-card .vinculo-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.vinculo-vazio {
+    color: oklch(0.6 0.01 280);
+    text-align: center;
+    padding: 30px;
+    font-size: 0.9rem;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.PENDENTE {
+    background-color: oklch(0.55 0.15 80 / 20%);
+    color: oklch(0.78 0.13 80);
+    border: 1px solid oklch(0.55 0.15 80 / 40%);
+}
+
+.status-badge.ATIVO {
+    background-color: oklch(0.5 0.15 150 / 20%);
+    color: oklch(0.75 0.12 150);
+    border: 1px solid oklch(0.55 0.15 150 / 40%);
+}
+
+.status-badge.RECUSADO,
+.status-badge.BLOQUEADO {
+    background-color: oklch(0.4 0.2 25 / 15%);
+    border: 1px solid oklch(0.55 0.2 25 / 40%);
+    color: oklch(0.75 0.15 25);
+}
+
+.status-badge.INATIVO {
+    background-color: oklch(0.3 0.01 280 / 40%);
+    border: 1px solid oklch(0.4 0.01 280);
+    color: oklch(0.65 0.01 280);
+}
+
 /* ===================== RESPONSIVE ====================== */
 @media (max-width: 768px) {
     .header__div {

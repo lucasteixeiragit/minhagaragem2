@@ -17,6 +17,7 @@
             <nav class="header__nav">
                 <a href="index.html">Garagem</a>
                 <a href="profile.html">Perfil</a>
+                <a href="#" id="linkVinculos" style="display:none;">Vínculos</a>
                 <a href="#" id="btnLogout">Sair</a>
             </nav>
         </div>
@@ -113,6 +114,18 @@
                 document.getElementById('roleUsuario').className = `role-badge ${u.role}`;
                 document.getElementById('criadoEm').textContent = formatarData(u.createdAt);
                 document.getElementById('novoNome').value = u.nome;
+
+                // Link de vínculos: aponta para a tela correta conforme o role
+                const linkVinculos = document.getElementById('linkVinculos');
+                if (u.role === 'USER') {
+                    linkVinculos.textContent = 'Minhas Mecânicas';
+                    linkVinculos.href = 'minhas-mecanicas.html';
+                    linkVinculos.style.display = '';
+                } else if (u.role === 'MECANICA') {
+                    linkVinculos.textContent = 'Meus Clientes';
+                    linkVinculos.href = 'meus-clientes.html';
+                    linkVinculos.style.display = '';
+                }
             } catch (e) {
                 window.location.href = '/login.html';
             }
