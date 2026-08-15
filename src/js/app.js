@@ -50,6 +50,9 @@ import adminRoutes from './routes/admin.routes.js';
 // Importa as rotas de vínculo entre cliente e mecânica
 import vinculosRoutes from './routes/vinculos.routes.js';
 
+// Importa as rotas públicas de mecânicas (listagem para o cliente escolher)
+import mechanicsRoutes from './routes/mechanics.routes.js';
+
 // Importa a configuração de sessão (cookie HttpOnly + store MongoDB)
 import { configurarSessao } from './config/session.js';
 
@@ -249,6 +252,14 @@ app.use('/api/admin', adminRoutes);
 //   - PATCH  /api/vinculos/:id/desbloquear → Desbloquear vínculo (ADMIN)
 // SEGURANÇA: Autenticação obrigatória; autorização por role onde necessário
 app.use('/api/vinculos', vinculosRoutes);
+
+// ROTA: /api/mechanics
+// ============================================================
+// APONTA PARA: routes/mechanics.routes.js
+// ENDPOINTS DISPONÍVEIS:
+//   - GET /api/mechanics/public → Lista mecânicas ativas (id/nome/email)
+// SEGURANÇA: Qualquer usuário autenticado; nunca retorna senhaHash
+app.use('/api/mechanics', mechanicsRoutes);
 
 // ============================================================
 // ROTA RAIZ (HOME DA API)
