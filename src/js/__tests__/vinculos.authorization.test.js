@@ -11,6 +11,9 @@
 //   - Acesso negado (sem vínculo)
 // ============================================================
 
+import { test, describe, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+
 import {
     canMechanicAccessClient,
     canMechanicAccessVehicle,
@@ -29,35 +32,48 @@ import {
 import Usuario from '../models/Usuario.js';
 import Vinculo, { ESTADOS_VINCULO, TIPOS_VINCULO } from '../models/Vinculo.js';
 import Veiculo from '../models/Veiculo.js';
+import { conectarBanco, desconectarBanco, getBanco } from '../config/database.js';
 import { ObjectId } from 'mongodb';
 
 // ============================================================
 // SUITE DE TESTES: Autorização de Vínculo
 // ============================================================
+// Este arquivo executa contra um MongoDB real (mesma URI usada pelo
+// servidor). Todos os dados criados durante os testes (usuários,
+// vínculos e veículos) são removidos ao final via `after` global.
+// ============================================================
+
+const usuariosCriados = [];
+const vinculosCriados = [];
+const veiculosCriados = [];
 
 describe('Autorização de Vínculo', () => {
 
     let cliente, mecanica, veiculo, vinculo;
 
     // ========================================================
-    // SETUP: Criar dados de teste
+    // SETUP GERAL: Conectar ao banco e criar dados de teste
     // ========================================================
-    beforeAll(async () => {
+    before(async () => {
+        await conectarBanco();
+
         // Criar cliente
-        cliente = await Usuario.criar({
+        cliente = { _id: (await Usuario.criar({
             nome: 'Cliente Teste',
             email: `cliente-${Date.now()}@test.com`,
             senhaHash: 'hash123',
             role: 'USER'
-        });
+        })).insertedId };
+        usuariosCriados.push(cliente._id);
 
         // Criar mecânica
-        mecanica = await Usuario.criar({
+        mecanica = { _id: (await Usuario.criar({
             nome: 'Mecânica Teste',
             email: `mecanica-${Date.now()}@test.com`,
             senhaHash: 'hash123',
             role: 'MECANICA'
-        });
+        })).insertedId };
+        usuariosCriados.push(mecanica._id);
 
         // Criar veículo do cliente
         veiculo = await Veiculo.criarDoProprietario(
@@ -72,6 +88,26 @@ describe('Autorização de Vínculo', () => {
             },
             cliente._id
         );
+        veiculosCriados.push(veiculo.insertedId);
+    });
+
+    // ========================================================
+    // TEARDOWN GERAL: Remover dados de teste e desconectar
+    // ========================================================
+    after(async () => {
+        const db = getBanco();
+
+        if (vinculosCriados.length > 0) {
+            await db.collection('vinculos').deleteMany({ _id: { $in: vinculosCriados } });
+        }
+        if (veiculosCriados.length > 0) {
+            await db.collection('veiculos').deleteMany({ _id: { $in: veiculosCriados } });
+        }
+        if (usuariosCriados.length > 0) {
+            await db.collection('usuarios').deleteMany({ _id: { $in: usuariosCriados } });
+        }
+
+        await desconectarBanco();
     });
 
     // ========================================================
@@ -79,7 +115,7 @@ describe('Autorização de Vínculo', () => {
     // ========================================================
     describe('Acesso Permitido (Vínculo ATIVO)', () => {
 
-        beforeAll(async () => {
+        before(async () => {
             // Criar vínculo ATIVO
             const resultado = await Vinculo.criar({
                 usuarioId: cliente._id,
@@ -87,6 +123,7 @@ describe('Autorização de Vínculo', () => {
                 criadoPor: mecanica._id,
                 tipo: TIPOS_VINCULO.CONVITE
             });
+            vinculosCriados.push(resultado.insertedId);
 
             vinculo = await Vinculo.buscarPorId(resultado.insertedId);
 
@@ -96,51 +133,51 @@ describe('Autorização de Vínculo', () => {
 
         test('canMechanicAccessClient deve retornar true', async () => {
             const temAcesso = await canMechanicAccessClient(mecanica._id, cliente._id);
-            expect(temAcesso).toBe(true);
+            assert.equal(temAcesso, true);
         });
 
         test('canMechanicAccessVehicle deve retornar true', async () => {
             const temAcesso = await canMechanicAccessVehicle(mecanica._id, veiculo.insertedId);
-            expect(temAcesso).toBe(true);
+            assert.equal(temAcesso, true);
         });
 
         test('verificarVinculoAtivo deve retornar documento do vínculo', async () => {
             const vinculoAtivo = await verificarVinculoAtivo(cliente._id, mecanica._id);
-            expect(vinculoAtivo).not.toBeNull();
-            expect(vinculoAtivo.status).toBe(ESTADOS_VINCULO.ATIVO);
+            assert.notEqual(vinculoAtivo, null);
+            assert.equal(vinculoAtivo.status, ESTADOS_VINCULO.ATIVO);
         });
 
         test('obterClientesAtivos deve incluir este cliente', async () => {
             const clientes = await obterClientesAtivos(mecanica._id);
             const clienteEncontrado = clientes.find(c => c.cliente._id.toString() === cliente._id.toString());
-            expect(clienteEncontrado).toBeDefined();
-            expect(clienteEncontrado.vinculo.status).toBe(ESTADOS_VINCULO.ATIVO);
+            assert.notEqual(clienteEncontrado, undefined);
+            assert.equal(clienteEncontrado.vinculo.status, ESTADOS_VINCULO.ATIVO);
         });
 
         test('obterMecanicasAtivas deve incluir esta mecânica', async () => {
             const mecanicas = await obterMecanicasAtivas(cliente._id);
             const mecanicaEncontrada = mecanicas.find(m => m.mecanica._id.toString() === mecanica._id.toString());
-            expect(mecanicaEncontrada).toBeDefined();
-            expect(mecanicaEncontrada.vinculo.status).toBe(ESTADOS_VINCULO.ATIVO);
+            assert.notEqual(mecanicaEncontrada, undefined);
+            assert.equal(mecanicaEncontrada.vinculo.status, ESTADOS_VINCULO.ATIVO);
         });
 
         test('verificarAcessoVeiculo deve retornar true', async () => {
             const temAcesso = await verificarAcessoVeiculo(mecanica._id, veiculo.insertedId);
-            expect(temAcesso).toBe(true);
+            assert.equal(temAcesso, true);
         });
 
         test('obterVeiculosDoCliente deve incluir o veículo', async () => {
             const veiculos = await obterVeiculosDoCliente(mecanica._id, cliente._id);
-            expect(veiculos.length).toBeGreaterThan(0);
+            assert.ok(veiculos.length > 0);
             const veiculoEncontrado = veiculos.find(v => v._id.toString() === veiculo.insertedId.toString());
-            expect(veiculoEncontrado).toBeDefined();
+            assert.notEqual(veiculoEncontrado, undefined);
         });
 
         test('obterVeiculosAcessiveisParaMecanica deve incluir o veículo', async () => {
             const veiculos = await obterVeiculosAcessiveisParaMecanica(mecanica._id);
-            expect(veiculos.length).toBeGreaterThan(0);
+            assert.ok(veiculos.length > 0);
             const veiculoEncontrado = veiculos.find(v => v._id.toString() === veiculo.insertedId.toString());
-            expect(veiculoEncontrado).toBeDefined();
+            assert.notEqual(veiculoEncontrado, undefined);
         });
     });
 
@@ -151,22 +188,24 @@ describe('Autorização de Vínculo', () => {
 
         let clientePendente, mecanicaPendente, vinculoPendente;
 
-        beforeAll(async () => {
+        before(async () => {
             // Criar cliente
-            clientePendente = await Usuario.criar({
+            clientePendente = { _id: (await Usuario.criar({
                 nome: 'Cliente Pendente',
                 email: `cliente-pendente-${Date.now()}@test.com`,
                 senhaHash: 'hash123',
                 role: 'USER'
-            });
+            })).insertedId };
+            usuariosCriados.push(clientePendente._id);
 
             // Criar mecânica
-            mecanicaPendente = await Usuario.criar({
+            mecanicaPendente = { _id: (await Usuario.criar({
                 nome: 'Mecânica Pendente',
                 email: `mecanica-pendente-${Date.now()}@test.com`,
                 senhaHash: 'hash123',
                 role: 'MECANICA'
-            });
+            })).insertedId };
+            usuariosCriados.push(mecanicaPendente._id);
 
             // Criar vínculo PENDENTE (não aceitar)
             const resultado = await Vinculo.criar({
@@ -175,24 +214,25 @@ describe('Autorização de Vínculo', () => {
                 criadoPor: mecanicaPendente._id,
                 tipo: TIPOS_VINCULO.CONVITE
             });
+            vinculosCriados.push(resultado.insertedId);
 
             vinculoPendente = await Vinculo.buscarPorId(resultado.insertedId);
         });
 
         test('canMechanicAccessClient deve retornar false', async () => {
             const temAcesso = await canMechanicAccessClient(mecanicaPendente._id, clientePendente._id);
-            expect(temAcesso).toBe(false);
+            assert.equal(temAcesso, false);
         });
 
         test('verificarVinculoAtivo deve retornar null', async () => {
             const vinculoAtivo = await verificarVinculoAtivo(clientePendente._id, mecanicaPendente._id);
-            expect(vinculoAtivo).toBeNull();
+            assert.equal(vinculoAtivo, null);
         });
 
         test('obterClientesAtivos não deve incluir este cliente', async () => {
             const clientes = await obterClientesAtivos(mecanicaPendente._id);
             const clienteEncontrado = clientes.find(c => c.cliente._id.toString() === clientePendente._id.toString());
-            expect(clienteEncontrado).toBeUndefined();
+            assert.equal(clienteEncontrado, undefined);
         });
     });
 
@@ -203,22 +243,24 @@ describe('Autorização de Vínculo', () => {
 
         let clienteRecusado, mecanicaRecusada, vinculoRecusado;
 
-        beforeAll(async () => {
+        before(async () => {
             // Criar cliente
-            clienteRecusado = await Usuario.criar({
+            clienteRecusado = { _id: (await Usuario.criar({
                 nome: 'Cliente Recusado',
                 email: `cliente-recusado-${Date.now()}@test.com`,
                 senhaHash: 'hash123',
                 role: 'USER'
-            });
+            })).insertedId };
+            usuariosCriados.push(clienteRecusado._id);
 
             // Criar mecânica
-            mecanicaRecusada = await Usuario.criar({
+            mecanicaRecusada = { _id: (await Usuario.criar({
                 nome: 'Mecânica Recusada',
                 email: `mecanica-recusada-${Date.now()}@test.com`,
                 senhaHash: 'hash123',
                 role: 'MECANICA'
-            });
+            })).insertedId };
+            usuariosCriados.push(mecanicaRecusada._id);
 
             // Criar vínculo e recusar
             const resultado = await Vinculo.criar({
@@ -227,6 +269,7 @@ describe('Autorização de Vínculo', () => {
                 criadoPor: mecanicaRecusada._id,
                 tipo: TIPOS_VINCULO.CONVITE
             });
+            vinculosCriados.push(resultado.insertedId);
 
             vinculoRecusado = await Vinculo.buscarPorId(resultado.insertedId);
             await Vinculo.recusar(vinculoRecusado._id);
@@ -234,12 +277,12 @@ describe('Autorização de Vínculo', () => {
 
         test('canMechanicAccessClient deve retornar false', async () => {
             const temAcesso = await canMechanicAccessClient(mecanicaRecusada._id, clienteRecusado._id);
-            expect(temAcesso).toBe(false);
+            assert.equal(temAcesso, false);
         });
 
         test('verificarVinculoAtivo deve retornar null', async () => {
             const vinculoAtivo = await verificarVinculoAtivo(clienteRecusado._id, mecanicaRecusada._id);
-            expect(vinculoAtivo).toBeNull();
+            assert.equal(vinculoAtivo, null);
         });
     });
 
@@ -250,22 +293,24 @@ describe('Autorização de Vínculo', () => {
 
         let clienteInativo, mecanicaInativa, vinculoInativo;
 
-        beforeAll(async () => {
+        before(async () => {
             // Criar cliente
-            clienteInativo = await Usuario.criar({
+            clienteInativo = { _id: (await Usuario.criar({
                 nome: 'Cliente Inativo',
                 email: `cliente-inativo-${Date.now()}@test.com`,
                 senhaHash: 'hash123',
                 role: 'USER'
-            });
+            })).insertedId };
+            usuariosCriados.push(clienteInativo._id);
 
             // Criar mecânica
-            mecanicaInativa = await Usuario.criar({
+            mecanicaInativa = { _id: (await Usuario.criar({
                 nome: 'Mecânica Inativa',
                 email: `mecanica-inativa-${Date.now()}@test.com`,
                 senhaHash: 'hash123',
                 role: 'MECANICA'
-            });
+            })).insertedId };
+            usuariosCriados.push(mecanicaInativa._id);
 
             // Criar vínculo ATIVO e depois desativar
             const resultado = await Vinculo.criar({
@@ -274,6 +319,7 @@ describe('Autorização de Vínculo', () => {
                 criadoPor: mecanicaInativa._id,
                 tipo: TIPOS_VINCULO.CONVITE
             });
+            vinculosCriados.push(resultado.insertedId);
 
             vinculoInativo = await Vinculo.buscarPorId(resultado.insertedId);
             await Vinculo.aceitar(vinculoInativo._id);
@@ -282,12 +328,12 @@ describe('Autorização de Vínculo', () => {
 
         test('canMechanicAccessClient deve retornar false', async () => {
             const temAcesso = await canMechanicAccessClient(mecanicaInativa._id, clienteInativo._id);
-            expect(temAcesso).toBe(false);
+            assert.equal(temAcesso, false);
         });
 
         test('verificarVinculoAtivo deve retornar null', async () => {
             const vinculoAtivo = await verificarVinculoAtivo(clienteInativo._id, mecanicaInativa._id);
-            expect(vinculoAtivo).toBeNull();
+            assert.equal(vinculoAtivo, null);
         });
     });
 
@@ -298,22 +344,24 @@ describe('Autorização de Vínculo', () => {
 
         let clienteBloqueado, mecanicaBloqueada, vinculoBloqueado;
 
-        beforeAll(async () => {
+        before(async () => {
             // Criar cliente
-            clienteBloqueado = await Usuario.criar({
+            clienteBloqueado = { _id: (await Usuario.criar({
                 nome: 'Cliente Bloqueado',
                 email: `cliente-bloqueado-${Date.now()}@test.com`,
                 senhaHash: 'hash123',
                 role: 'USER'
-            });
+            })).insertedId };
+            usuariosCriados.push(clienteBloqueado._id);
 
             // Criar mecânica
-            mecanicaBloqueada = await Usuario.criar({
+            mecanicaBloqueada = { _id: (await Usuario.criar({
                 nome: 'Mecânica Bloqueada',
                 email: `mecanica-bloqueada-${Date.now()}@test.com`,
                 senhaHash: 'hash123',
                 role: 'MECANICA'
-            });
+            })).insertedId };
+            usuariosCriados.push(mecanicaBloqueada._id);
 
             // Criar vínculo ATIVO e depois bloquear
             const resultado = await Vinculo.criar({
@@ -322,6 +370,7 @@ describe('Autorização de Vínculo', () => {
                 criadoPor: mecanicaBloqueada._id,
                 tipo: TIPOS_VINCULO.CONVITE
             });
+            vinculosCriados.push(resultado.insertedId);
 
             vinculoBloqueado = await Vinculo.buscarPorId(resultado.insertedId);
             await Vinculo.aceitar(vinculoBloqueado._id);
@@ -330,12 +379,12 @@ describe('Autorização de Vínculo', () => {
 
         test('canMechanicAccessClient deve retornar false', async () => {
             const temAcesso = await canMechanicAccessClient(mecanicaBloqueada._id, clienteBloqueado._id);
-            expect(temAcesso).toBe(false);
+            assert.equal(temAcesso, false);
         });
 
         test('verificarVinculoAtivo deve retornar null', async () => {
             const vinculoAtivo = await verificarVinculoAtivo(clienteBloqueado._id, mecanicaBloqueada._id);
-            expect(vinculoAtivo).toBeNull();
+            assert.equal(vinculoAtivo, null);
         });
     });
 
@@ -346,39 +395,41 @@ describe('Autorização de Vínculo', () => {
 
         let clienteSemVinculo, mecanicaSemVinculo;
 
-        beforeAll(async () => {
+        before(async () => {
             // Criar cliente
-            clienteSemVinculo = await Usuario.criar({
+            clienteSemVinculo = { _id: (await Usuario.criar({
                 nome: 'Cliente Sem Vínculo',
                 email: `cliente-sem-vinculo-${Date.now()}@test.com`,
                 senhaHash: 'hash123',
                 role: 'USER'
-            });
+            })).insertedId };
+            usuariosCriados.push(clienteSemVinculo._id);
 
             // Criar mecânica
-            mecanicaSemVinculo = await Usuario.criar({
+            mecanicaSemVinculo = { _id: (await Usuario.criar({
                 nome: 'Mecânica Sem Vínculo',
                 email: `mecanica-sem-vinculo-${Date.now()}@test.com`,
                 senhaHash: 'hash123',
                 role: 'MECANICA'
-            });
+            })).insertedId };
+            usuariosCriados.push(mecanicaSemVinculo._id);
 
             // Não criar vínculo
         });
 
         test('canMechanicAccessClient deve retornar false', async () => {
             const temAcesso = await canMechanicAccessClient(mecanicaSemVinculo._id, clienteSemVinculo._id);
-            expect(temAcesso).toBe(false);
+            assert.equal(temAcesso, false);
         });
 
         test('verificarVinculoAtivo deve retornar null', async () => {
             const vinculoAtivo = await verificarVinculoAtivo(clienteSemVinculo._id, mecanicaSemVinculo._id);
-            expect(vinculoAtivo).toBeNull();
+            assert.equal(vinculoAtivo, null);
         });
 
         test('obterClientesAtivos deve retornar array vazio', async () => {
             const clientes = await obterClientesAtivos(mecanicaSemVinculo._id);
-            expect(clientes.length).toBe(0);
+            assert.equal(clientes.length, 0);
         });
     });
 
@@ -389,37 +440,37 @@ describe('Autorização de Vínculo', () => {
 
         test('PENDENTE → ATIVO deve ser válido', () => {
             const resultado = validarTransicaoStatus(ESTADOS_VINCULO.PENDENTE, ESTADOS_VINCULO.ATIVO);
-            expect(resultado.valido).toBe(true);
+            assert.equal(resultado.valido, true);
         });
 
         test('PENDENTE → RECUSADO deve ser válido', () => {
             const resultado = validarTransicaoStatus(ESTADOS_VINCULO.PENDENTE, ESTADOS_VINCULO.RECUSADO);
-            expect(resultado.valido).toBe(true);
+            assert.equal(resultado.valido, true);
         });
 
         test('ATIVO → INATIVO deve ser válido', () => {
             const resultado = validarTransicaoStatus(ESTADOS_VINCULO.ATIVO, ESTADOS_VINCULO.INATIVO);
-            expect(resultado.valido).toBe(true);
+            assert.equal(resultado.valido, true);
         });
 
         test('ATIVO → BLOQUEADO deve ser válido', () => {
             const resultado = validarTransicaoStatus(ESTADOS_VINCULO.ATIVO, ESTADOS_VINCULO.BLOQUEADO);
-            expect(resultado.valido).toBe(true);
+            assert.equal(resultado.valido, true);
         });
 
         test('BLOQUEADO → ATIVO deve ser válido', () => {
             const resultado = validarTransicaoStatus(ESTADOS_VINCULO.BLOQUEADO, ESTADOS_VINCULO.ATIVO);
-            expect(resultado.valido).toBe(true);
+            assert.equal(resultado.valido, true);
         });
 
         test('INATIVO → ATIVO deve ser inválido', () => {
             const resultado = validarTransicaoStatus(ESTADOS_VINCULO.INATIVO, ESTADOS_VINCULO.ATIVO);
-            expect(resultado.valido).toBe(false);
+            assert.equal(resultado.valido, false);
         });
 
         test('RECUSADO → ATIVO deve ser inválido', () => {
             const resultado = validarTransicaoStatus(ESTADOS_VINCULO.RECUSADO, ESTADOS_VINCULO.ATIVO);
-            expect(resultado.valido).toBe(false);
+            assert.equal(resultado.valido, false);
         });
     });
 });
