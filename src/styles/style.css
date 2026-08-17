@@ -64,7 +64,7 @@ body {
 
     .header__nav{
         display: flex;
-        gap: 50px;
+        gap: 10px;
     }
 
     .header__nav__garage{
