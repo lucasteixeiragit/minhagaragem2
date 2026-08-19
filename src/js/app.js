@@ -80,6 +80,13 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // ============================================================
+// CONFIGURACOES DO EXPRESS
+// ============================================================
+// trust proxy: necessario quando o app roda atras de um reverse proxy (nginx).
+// Sem isso, o express-rate-limit rejeita o header X-Forwarded-For e crasha.
+app.set('trust proxy', 1);
+
+// ============================================================
 // MIDDLEWARES GLOBAIS
 // ============================================================
 // Middlewares são funções que processam requisições antes de chegarem às rotas
