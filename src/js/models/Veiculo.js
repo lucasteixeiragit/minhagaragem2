@@ -69,7 +69,7 @@ class Veiculo {
     // ========================================================
     // PROPÓSITO: Retorna TODOS os veículos do usuário
     // RETORNA: Array de documentos completos
-    // USADO EM: routes/veiculos.js → GET /api/veiculos
+    // USADO EM: routes/vehicle.routes.js → GET /api/vehicles
     // USADO NO FRONTEND: main.js (renderiza lista na home)
     // EXEMPLO DE RETORNO:
     //   [
@@ -92,7 +92,7 @@ class Veiculo {
     // PARÂMETROS:
     //   - id: String com ID do MongoDB (ex: "507f1f77bcf86cd799439011")
     // RETORNA: Documento completo do veículo ou null se não encontrado
-    // USADO EM: routes/veiculos.js → GET /api/veiculos/:id
+    // USADO EM: routes/vehicle.routes.js → GET /api/vehicles/:id
     // USADO NO FRONTEND: veiculo-detalhes.js (carrega dados do veículo)
     // IMPORTANTE: Converte string para ObjectId antes de buscar
     // ========================================================
@@ -111,7 +111,7 @@ class Veiculo {
     // PARÂMETROS:
     //   - veiculo: Objeto com dados do veículo (apelido, marca, modelo, ...)
     // RETORNA: Resultado da operação { insertedId: ObjectId }
-    // USADO EM: routes/veiculos.js → POST /api/veiculos
+    // USADO EM: routes/vehicle.routes.js → POST /api/vehicles
     // USADO NO FRONTEND: veiculo-novo.js (formulário de cadastro)
     // IMPORTANTE: Adiciona automaticamente timestamps de criação e atualização
     // ========================================================
@@ -140,7 +140,7 @@ class Veiculo {
     //   - id: String com ID do veículo
     //   - dadosAtualizados: Objeto com campos a atualizar
     // RETORNA: Resultado { matchedCount, modifiedCount }
-    // USADO EM: routes/veiculos.js → PUT /api/veiculos/:id
+    // USADO EM: routes/vehicle.routes.js → PUT /api/vehicles/:id
     // IMPORTANTE:
     //   - Usa $set para atualizar apenas campos especificados
     //   - Atualiza automaticamente o timestamp 'atualizadoEm'
@@ -174,7 +174,7 @@ class Veiculo {
     // PARÂMETROS:
     //   - id: String com ID do veículo
     // RETORNA: Resultado { deletedCount }
-    // USADO EM: routes/veiculos.js → DELETE /api/veiculos/:id
+    // USADO EM: routes/vehicle.routes.js → DELETE /api/vehicles/:id
     // USADO NO FRONTEND: main.js (botão "Excluir" nos cards)
     // IMPORTANTE: Exclui permanentemente! Não há "soft delete"
     // ========================================================
@@ -194,7 +194,7 @@ class Veiculo {
     //   - veiculoId: String com ID do veículo
     //   - manutencao: Objeto { data, km, tipo, custo, descricao, notaFiscal }
     // RETORNA: Resultado da atualização
-    // USADO EM: routes/veiculos.js → POST /api/veiculos/:id/manutencoes
+    // USADO EM: routes/maintenance.routes.js → POST /api/vehicles/:id/maintenance
     // USADO NO FRONTEND: manutencao-nova.js (formulário de registro)
     // OPERADOR $push: Adiciona elemento ao final do array
     // IMPORTANTE: Gera ID único para a manutenção (para poder excluir depois)
@@ -231,7 +231,7 @@ class Veiculo {
     //   - veiculoId: String com ID do veículo
     //   - manutencaoId: String com ID da manutenção (não é ObjectId)
     // RETORNA: Resultado da atualização
-    // USADO EM: routes/veiculos.js → DELETE /api/veiculos/:id/manutencoes/:manutencaoId
+    // USADO EM: routes/maintenance.routes.js → DELETE /api/vehicles/:id/maintenance/:manutencaoId
     // USADO NO FRONTEND: veiculo-detalhes.js (botão "Excluir" em cada manutenção)
     // OPERADOR $pull: Remove elemento do array que corresponde ao filtro
     // ========================================================
@@ -259,7 +259,7 @@ class Veiculo {
     //   - kmAtual: Número com quilometragem atual
     //   - dataLeitura: String com data da leitura (formato ISO: "2026-08-05")
     // RETORNA: Resultado da atualização
-    // USADO EM: routes/veiculos.js → PATCH /api/veiculos/:id/km
+    // USADO EM: routes/maintenance.routes.js → PATCH /api/vehicles/:id/maintenance/km
     // IMPORTANTE PARA NOTIFICAÇÕES:
     //   - kmAtual é usado para calcular quando fazer próxima manutenção
     //   - dataLeitura permite calcular média de KM rodados por mês
@@ -406,7 +406,9 @@ class Veiculo {
 // ============================================================
 // Exporta a classe Veiculo como exportação padrão
 // USADO EM:
-//   - routes/veiculos.js → Todas as rotas da API
+//   - routes/vehicle.routes.js → Rotas de veículos
+//   - routes/maintenance.routes.js → Rotas de manutenção
+//   - routes/admin.routes.js → Listagem admin
 //   - Futuramente: Sistema de notificações (verificar veículos que precisam manutenção)
 // ============================================================
 export default Veiculo;

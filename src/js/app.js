@@ -21,10 +21,6 @@ import path from "path";
 // Em CommonJS usaríamos __dirname diretamente, mas em ES Modules precisamos converter
 import { fileURLToPath } from "url";
 
-// Importa as rotas de veículos do arquivo routes/veiculos.js
-// Contém endpoints: GET, POST, PUT, DELETE para manipular veículos
-import veiculosRoutes from './routes/veiculos.js';
-
 // Importa as rotas de fabricantes do arquivo routes/fabricantes.js
 // Contém endpoints: GET para buscar marcas, modelos, versões, etc.
 import fabricantesRoutes from './routes/fabricantes.js';
@@ -142,20 +138,6 @@ app.use('/api', limitadorGeral);
 // ============================================================
 // ROTAS DA API
 // ============================================================
-
-// ROTA: /api/veiculos
-// ============================================================
-// APONTA PARA: routes/veiculos.js
-// ENDPOINTS DISPONÍVEIS:
-//   - GET    /api/veiculos          → Buscar todos os veículos
-//   - GET    /api/veiculos/:id      → Buscar veículo por ID
-//   - POST   /api/veiculos          → Criar novo veículo
-//   - PUT    /api/veiculos/:id      → Atualizar veículo
-//   - DELETE /api/veiculos/:id      → Excluir veículo
-//   - POST   /api/veiculos/:id/manutencoes → Adicionar manutenção
-//   - DELETE /api/veiculos/:id/manutencoes/:manutencaoId → Excluir manutenção
-//   - PATCH  /api/veiculos/:id/km   → Atualizar KM do veículo
-app.use('/api/veiculos', veiculosRoutes);
 
 // ROTA: /api/fabricantes
 // ============================================================
