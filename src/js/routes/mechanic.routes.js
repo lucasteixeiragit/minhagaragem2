@@ -5,17 +5,16 @@
 // PREFIXO: /api/mechanic
 // SEGURANÇA:
 //   - Apenas role MECANICA (e ADMIN) podem acessar
-//   - A mecânica só vê veículos com os quais tem um ATENDIMENTO ativo
+//   - A mecânica só vê veículos de clientes com vínculo ATIVO
 //   - Nunca acessa veículo por ID arbitrário sem vínculo
 // ============================================================
 
 import express from 'express';
-import Atendimento from '../models/Atendimento.js';
 import Veiculo from '../models/Veiculo.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireRole } from '../middleware/authorization.js';
 import { requireActiveVehicleAccess } from '../middleware/vinculos.js';
-import { verificarAcessoVeiculo } from '../utils/authorization.js';
+import { verificarAcessoVeiculo, obterVeiculosAcessiveisParaMecanica } from '../utils/authorization.js';
 import { registrarAuditoria } from '../utils/audit.js';
 
 const router = express.Router();
@@ -23,22 +22,11 @@ const router = express.Router();
 // ============================================================
 // GET /api/mechanic/vehicles
 // PROPÓSITO: Lista os veículos que a mecânica pode atender
+// SEGURANÇA: Retorna apenas veículos de clientes com vínculo ATIVO
 // ============================================================
 router.get('/vehicles', requireAuth, requireRole('MECANICA', 'ADMIN'), async (req, res) => {
     try {
-        const atendimentos = await Atendimento.listarVeiculosDaMecanica(req.user._id);
-
-        // Busca os dados completos de cada veículo vinculado
-        const veiculos = [];
-        for (const atendimento of atendimentos) {
-            const veiculo = await Veiculo.buscarPorIdAdmin(atendimento.vehicleId);
-            if (veiculo) {
-                veiculos.push({
-                    ...veiculo,
-                    atendimentoId: atendimento._id
-                });
-            }
-        }
+        const veiculos = await obterVeiculosAcessiveisParaMecanica(req.user._id);
 
         res.json({ success: true, veiculos });
     } catch (error) {
@@ -52,13 +40,12 @@ router.get('/vehicles', requireAuth, requireRole('MECANICA', 'ADMIN'), async (re
 // PROPÓSITO: Retorna um veículo específico (somente se vinculado)
 // SEGURANÇA:
 //   - Verifica vínculo ATIVO entre mecânica e proprietário do veículo
-//   - Verifica atendimento ativo entre mecânica e veículo
 // ============================================================
 router.get('/vehicles/:id', requireAuth, requireRole('MECANICA', 'ADMIN'), requireActiveVehicleAccess, async (req, res) => {
     try {
-        // Verifica se existe atendimento ativo entre a mecânica e o veículo
-        const atendimento = await Atendimento.buscarPorMecanicaEVeiculo(req.user._id, req.params.id);
-        if (!atendimento) {
+        // Verifica se existe vínculo ATIVO entre a mecânica e o dono do veículo
+        const temAcesso = await verificarAcessoVeiculo(req.user._id, req.params.id);
+        if (!temAcesso) {
             return res.status(403).json({ success: false, message: 'Acesso negado a este veículo.' });
         }
 
@@ -79,13 +66,12 @@ router.get('/vehicles/:id', requireAuth, requireRole('MECANICA', 'ADMIN'), requi
 // PROPÓSITO: Mecânica registra manutenção em veículo vinculado
 // SEGURANÇA:
 //   - Verifica vínculo ATIVO entre mecânica e proprietário do veículo
-//   - Verifica atendimento ativo entre mecânica e veículo
 //   - Whitelist de campos no body
 // ============================================================
 router.post('/vehicles/:id/maintenance', requireAuth, requireRole('MECANICA', 'ADMIN'), requireActiveVehicleAccess, async (req, res) => {
     try {
-        const atendimento = await Atendimento.buscarPorMecanicaEVeiculo(req.user._id, req.params.id);
-        if (!atendimento) {
+        const temAcesso = await verificarAcessoVeiculo(req.user._id, req.params.id);
+        if (!temAcesso) {
             return res.status(403).json({ success: false, message: 'Acesso negado a este veículo.' });
         }
 
