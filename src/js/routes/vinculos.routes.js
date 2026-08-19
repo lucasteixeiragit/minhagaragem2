@@ -334,27 +334,57 @@ router.get('/minhas-mecanicas', requireAuth, requireRole('USER'), async (req, re
 // ============================================================
 // POST /api/vinculos/:id/aceitar
 // PROPÓSITO: Aceitar vínculo (muda status para ATIVO)
-// RESTRIÇÃO: Apenas o cliente (USER) pode aceitar
+// RESTRIÇÃO:
+//   - CONVITE (mecânica convida cliente): o cliente (USER) aceita
+//   - SOLICITACAO (cliente solicita mecânica): a mecânica (MECANICA) aceita
 // VALIDAÇÕES:
 //   - Vínculo deve pertencer ao usuário autenticado
 //   - Status deve ser PENDENTE
 // RETORNA: 200 OK com vínculo atualizado
 // ============================================================
-router.post('/:id/aceitar', requireAuth, requireRole('USER'), async (req, res) => {
+router.post('/:id/aceitar', requireAuth, async (req, res) => {
     try {
         const vinculoId = req.params.id;
         const usuarioAutenticado = req.user._id;
+        const roleAutenticado = req.user.role;
 
-        // Validar propriedade do vínculo
-        const validacao = await validarPropriedadeVinculo(vinculoId, usuarioAutenticado);
+        // Buscar vínculo para determinar quem pode aceitar
+        const vinculo = await Vinculo.buscarPorId(vinculoId);
+        if (!vinculo) {
+            return res.status(404).json({
+                success: false,
+                message: 'Vínculo não encontrado.'
+            });
+        }
+
+        // Determinar quem pode aceitar conforme o tipo
+        let validacao;
+        if (vinculo.tipo === TIPOS_VINCULO.SOLICITACAO) {
+            // SOLICITACAO: apenas a mecânica aceita
+            if (roleAutenticado !== 'MECANICA' && roleAutenticado !== 'ADMIN') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Apenas a mecânica pode aceitar esta solicitação.'
+                });
+            }
+            validacao = await validarPropriedadeVinculo(vinculoId, usuarioAutenticado, usuarioAutenticado);
+        } else {
+            // CONVITE: apenas o cliente (USER) aceita
+            if (roleAutenticado !== 'USER' && roleAutenticado !== 'ADMIN') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Apenas o cliente pode aceitar este convite.'
+                });
+            }
+            validacao = await validarPropriedadeVinculo(vinculoId, usuarioAutenticado);
+        }
+
         if (!validacao.valido) {
             return res.status(validacao.status).json({
                 success: false,
                 message: validacao.erro
             });
         }
-
-        const vinculo = validacao.vinculo;
 
         // Validar status
         if (vinculo.status !== ESTADOS_VINCULO.PENDENTE) {
@@ -397,27 +427,57 @@ router.post('/:id/aceitar', requireAuth, requireRole('USER'), async (req, res) =
 // ============================================================
 // POST /api/vinculos/:id/recusar
 // PROPÓSITO: Recusar vínculo (muda status para RECUSADO)
-// RESTRIÇÃO: Apenas o cliente (USER) pode recusar
+// RESTRIÇÃO:
+//   - CONVITE (mecânica convida cliente): o cliente (USER) recusa
+//   - SOLICITACAO (cliente solicita mecânica): a mecânica (MECANICA) recusa
 // VALIDAÇÕES:
 //   - Vínculo deve pertencer ao usuário autenticado
 //   - Status deve ser PENDENTE
 // RETORNA: 200 OK com vínculo atualizado
 // ============================================================
-router.post('/:id/recusar', requireAuth, requireRole('USER'), async (req, res) => {
+router.post('/:id/recusar', requireAuth, async (req, res) => {
     try {
         const vinculoId = req.params.id;
         const usuarioAutenticado = req.user._id;
+        const roleAutenticado = req.user.role;
 
-        // Validar propriedade do vínculo
-        const validacao = await validarPropriedadeVinculo(vinculoId, usuarioAutenticado);
+        // Buscar vínculo para determinar quem pode recusar
+        const vinculo = await Vinculo.buscarPorId(vinculoId);
+        if (!vinculo) {
+            return res.status(404).json({
+                success: false,
+                message: 'Vínculo não encontrado.'
+            });
+        }
+
+        // Determinar quem pode recusar conforme o tipo
+        let validacao;
+        if (vinculo.tipo === TIPOS_VINCULO.SOLICITACAO) {
+            // SOLICITACAO: apenas a mecânica recusa
+            if (roleAutenticado !== 'MECANICA' && roleAutenticado !== 'ADMIN') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Apenas a mecânica pode recusar esta solicitação.'
+                });
+            }
+            validacao = await validarPropriedadeVinculo(vinculoId, usuarioAutenticado, usuarioAutenticado);
+        } else {
+            // CONVITE: apenas o cliente (USER) recusa
+            if (roleAutenticado !== 'USER' && roleAutenticado !== 'ADMIN') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Apenas o cliente pode recusar este convite.'
+                });
+            }
+            validacao = await validarPropriedadeVinculo(vinculoId, usuarioAutenticado);
+        }
+
         if (!validacao.valido) {
             return res.status(validacao.status).json({
                 success: false,
                 message: validacao.erro
             });
         }
-
-        const vinculo = validacao.vinculo;
 
         // Validar status
         if (vinculo.status !== ESTADOS_VINCULO.PENDENTE) {

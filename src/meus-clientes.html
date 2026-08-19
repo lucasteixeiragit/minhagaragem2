@@ -195,7 +195,10 @@
                         <h3>${cliente ? cliente.nome : 'Cliente'}</h3>
                         <p>${cliente ? cliente.email : ''} — solicitado em ${formatarData(v.criadoEm)} <span class="status-badge ${v.status}">${v.status}</span></p>
                     </div>
-                    <p style="color: oklch(0.6 0.01 280); font-size: 0.85rem;">Aguardando o cliente aceitar o vínculo.</p>
+                    <div class="vinculo-actions">
+                        <button class="btn-small success" onclick="aceitarVinculo('${v._id}')">Aceitar</button>
+                        <button class="btn-small danger" onclick="recusarVinculo('${v._id}')">Recusar</button>
+                    </div>
                 `;
                 container.appendChild(card);
             }
@@ -250,6 +253,38 @@
                 container.appendChild(card);
             });
         }
+
+        window.aceitarVinculo = async (vinculoId) => {
+            if (!confirm('Deseja aceitar a solicitação deste cliente?')) return;
+            try {
+                const res = await fetch(`/api/vinculos/${vinculoId}/aceitar`, { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                    mostrarAlerta('Solicitação aceita.', 'success');
+                    await carregarVinculos();
+                } else {
+                    mostrarAlerta(data.message || 'Erro ao aceitar solicitação.');
+                }
+            } catch (e) {
+                mostrarAlerta('Erro ao aceitar solicitação.');
+            }
+        };
+
+        window.recusarVinculo = async (vinculoId) => {
+            if (!confirm('Deseja recusar a solicitação deste cliente?')) return;
+            try {
+                const res = await fetch(`/api/vinculos/${vinculoId}/recusar`, { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                    mostrarAlerta('Solicitação recusada.', 'success');
+                    await carregarVinculos();
+                } else {
+                    mostrarAlerta(data.message || 'Erro ao recusar solicitação.');
+                }
+            } catch (e) {
+                mostrarAlerta('Erro ao recusar solicitação.');
+            }
+        };
 
         window.desativarVinculo = async (vinculoId) => {
             if (!confirm('Deseja realmente desvincular este cliente?')) return;

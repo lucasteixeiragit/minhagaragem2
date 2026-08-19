@@ -87,11 +87,32 @@ class Vinculo {
             mecanicaId: mecanicaIdObj
         });
 
-        if (vinculoExistente) {
+        // Se já existe um vínculo ATIVO, PENDENTE ou BLOQUEADO, não permitir duplicar
+        if (vinculoExistente && [ESTADOS_VINCULO.ATIVO, ESTADOS_VINCULO.PENDENTE, ESTADOS_VINCULO.BLOQUEADO].includes(vinculoExistente.status)) {
             throw new Error('Já existe um vínculo entre este usuário e esta mecânica');
         }
 
         const agora = new Date();
+
+        // Se existe um vínculo INATIVO ou RECUSADO, reativá-lo (volta para PENDENTE)
+        if (vinculoExistente) {
+            const resultado = await db.collection(COLECAO).updateOne(
+                { _id: vinculoExistente._id },
+                {
+                    $set: {
+                        status: ESTADOS_VINCULO.PENDENTE,
+                        atualizadoEm: agora,
+                        criadoPor: criadoPorObj,
+                        dataAceite: null,
+                        dataRecusa: null,
+                        dataDesativacao: null,
+                        tipo
+                    }
+                }
+            );
+            return { ...resultado, insertedId: vinculoExistente._id, reativado: true };
+        }
+
         const resultado = await db.collection(COLECAO).insertOne({
             usuarioId: usuarioIdObj,
             mecanicaId: mecanicaIdObj,
