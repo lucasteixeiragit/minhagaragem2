@@ -27,6 +27,8 @@
                 <a class="header__nav__garage" href="./index.html">Garagem</a>
                 <a class="header__nav__addVeicle" href="./veiculo-novo.html">+ Adicionar Veiculo</a>
                 <a class="header__nav__addVeicle" href="./termos.html">Termos</a>
+                <a class="header__nav__addVeicle" href="./profile.html" id="linkPerfil">Perfil</a>
+                <a class="header__nav__addVeicle" href="#" id="linkLogout">Sair</a>
             </nav>
         </div>
     </header>
@@ -122,7 +124,7 @@
     </main>
 
     <script src="./js/veiculo-novo.js"></script>
-    <script>
+    <!-- <script>
         // ============================================================
         // VERIFICAÇÃO DE AUTENTICAÇÃO
         // ============================================================
@@ -136,6 +138,41 @@
                 window.location.href = '/login.html';
             }
         })();
-    </script>
+    </script> -->
+
+        <script type="module" src="./js/main.js"></script>
+        <!-- Menu de sessão movido para session-menu.js. Mantido comentado para referência. -->
+        <!-- <script>
+            // ============================================================
+            // VERIFICAÇÃO DE AUTENTICAÇÃO (menu dinâmico)
+            // ============================================================
+            (async function verificarSessao() {
+                try {
+                    const res = await fetch('/api/auth/me');
+                    if (res.ok) {
+                        const data = await res.json();
+                        const u = data.user;
+
+                        document.getElementById('linkPerfil').style.display = '';
+                        document.getElementById('linkLogout').style.display = '';
+                        document.getElementById('linkLogin').style.display = 'none';
+
+                        if (u.role === 'ADMIN') {
+                            document.getElementById('linkAdmin').style.display = '';
+                        }
+                        if (u.role === 'MECANICA' || u.role === 'ADMIN') {
+                            document.getElementById('linkMecanica').style.display = '';
+                        }
+                    }
+                } catch (e) { /* não autenticado */ }
+            })();
+
+            document.getElementById('linkLogout').addEventListener('click', async (e) => {
+                e.preventDefault();
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/login.html';
+            });
+        </script> -->
+        <script type="module" src="./js/session-menu.js"></script>
 </body>
 </html>

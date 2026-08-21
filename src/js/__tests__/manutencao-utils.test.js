@@ -14,6 +14,46 @@ test('calcularKmAtualEstimado estima a quilometragem a partir da média mensal',
   assert.equal(kmEstimado, 13000);
 });
 
+test('calcularKmAtualEstimado não projeta quilometragem para uma data de referência anterior', () => {
+  const veiculo = {
+    kmAtual: '10000',
+    kmMensal: '3000',
+    dataLeitura: '2025-02-01'
+  };
+
+  assert.equal(calcularKmAtualEstimado(veiculo, new Date('2025-01-31T00:00:00')), 10000);
+});
+
+test('calcularKmAtualEstimado mantém o KM informado quando a data da leitura é inválida', () => {
+  const veiculo = {
+    kmAtual: 10000,
+    kmMensal: 3000,
+    dataLeitura: 'data-invalida'
+  };
+
+  assert.equal(calcularKmAtualEstimado(veiculo, new Date('2025-01-31T00:00:00')), 10000);
+});
+
+test('calcularKmAtualEstimado mantém o KM informado quando não existe média mensal', () => {
+  const veiculo = {
+    kmAtual: 10000,
+    kmMensal: 0,
+    dataLeitura: '2025-01-01'
+  };
+
+  assert.equal(calcularKmAtualEstimado(veiculo, new Date('2025-01-31T00:00:00')), 10000);
+});
+
+test('calcularKmAtualEstimado mantém o KM informado quando a data de referência é inválida', () => {
+  const veiculo = {
+    kmAtual: 10000,
+    kmMensal: 3000,
+    dataLeitura: '2025-01-01'
+  };
+
+  assert.equal(calcularKmAtualEstimado(veiculo, new Date('data-invalida')), 10000);
+});
+
 test('calcularProximasManutencoes usa o KM estimado para os alertas', () => {
   const veiculo = {
     kmAtual: 10000,

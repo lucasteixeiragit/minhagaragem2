@@ -108,13 +108,15 @@
 
     <!--===================== FOOTER ======================-->
     <script src="./js/manutencao-nova.js"></script>
-    <script>
+    <!-- Guarda de sessão movida para session-guard.js. Mantida comentada para referência. -->
+    <!-- <script>
         (async function verificarSessao() {
             try {
                 const res = await fetch('/api/auth/me');
                 if (!res.ok) window.location.href = '/login.html';
             } catch (e) { window.location.href = '/login.html'; }
         })();
-    </script>
+    </script> -->
+    <script type="module" src="./js/session-guard.js"></script>
 </body>
 </html>

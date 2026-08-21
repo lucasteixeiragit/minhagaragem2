@@ -5,17 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro - Minha Garagem</title>
     <link rel="stylesheet" href="styles/auth.css">
+    <link rel="stylesheet" href="styles/style.css">
     <link rel="icon" type="image/png" href="assets/favicons/favicon.png">
 </head>
 <body>
     <header class="header">
         <div class="header__div">
             <a href="/" class="header__home">
-                <span class="header__home__icon">🏠</span>
-                Minha Garagem
+                <span class="header__home__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                </span>
+                MINHA GARAGEM
             </a>
             <nav class="header__nav">
-                <a href="login.html">Já tenho conta</a>
+                <a class="header__nav__addVeicle" href="login.html">Já tenho conta</a>
             </nav>
         </div>
     </header>
@@ -57,82 +62,6 @@
         </div>
     </main>
 
-    <script>
-        // ============================================================
-        // CADASTRO - Frontend
-        // ============================================================
-        const form = document.getElementById('registerForm');
-        const alertEl = document.getElementById('alert');
-        const btnRegister = document.getElementById('btnRegister');
-
-        function mostrarAlerta(mensagem, tipo = 'error') {
-            alertEl.textContent = mensagem;
-            alertEl.className = `alert alert-${tipo} show`;
-        }
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            btnRegister.disabled = true;
-            btnRegister.textContent = 'Criando conta...';
-
-            const nome = document.getElementById('nome').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const senha = document.getElementById('senha').value;
-            const confirmarSenha = document.getElementById('confirmarSenha').value;
-
-            // Validação no frontend (complementar ao backend)
-            if (nome.length < 2) {
-                mostrarAlerta('Informe um nome válido (mínimo 2 caracteres).');
-                btnRegister.disabled = false;
-                btnRegister.textContent = 'Criar conta';
-                return;
-            }
-
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                mostrarAlerta('Informe um e-mail válido.');
-                btnRegister.disabled = false;
-                btnRegister.textContent = 'Criar conta';
-                return;
-            }
-
-            if (senha.length < 8) {
-                mostrarAlerta('A senha deve ter no mínimo 8 caracteres.');
-                btnRegister.disabled = false;
-                btnRegister.textContent = 'Criar conta';
-                return;
-            }
-
-            if (senha !== confirmarSenha) {
-                mostrarAlerta('As senhas não coincidem.');
-                btnRegister.disabled = false;
-                btnRegister.textContent = 'Criar conta';
-                return;
-            }
-
-            try {
-                const res = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome, email, senha })
-                });
-
-                const data = await res.json();
-
-                if (!res.ok) {
-                    mostrarAlerta(data.message || 'Erro ao criar conta.');
-                    btnRegister.disabled = false;
-                    btnRegister.textContent = 'Criar conta';
-                    return;
-                }
-
-                mostrarAlerta('Conta criada! Redirecionando para login...', 'success');
-                setTimeout(() => window.location.href = '/login.html', 1200);
-            } catch (err) {
-                mostrarAlerta('Erro de conexão. Tente novamente.');
-                btnRegister.disabled = false;
-                btnRegister.textContent = 'Criar conta';
-            }
-        });
-    </script>
+    <script type="module" src="./js/register.js"></script>
 </body>
 </html>

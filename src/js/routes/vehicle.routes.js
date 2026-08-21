@@ -230,4 +230,31 @@ router.delete('/:id', requireAuth, async (req, res) => {
     }
 });
 
+if (dados.kmAtual !== undefined && dados.kmAtual < 0) {
+    return res.status(400).json({
+        success: false,
+        message: 'A quilometragem não pode ser negativa.'
+    });
+}
+
+if (dados.kmMensal !== undefined && dados.kmMensal < 0) {
+    return res.status(400).json({
+        success: false,
+        message: 'A média mensal não pode ser negativa.'
+    });
+}
+
+if (dados.intervalosManutencoesPreventivas) {
+    for (const intervalo of Object.values(
+        dados.intervalosManutencoesPreventivas
+    )) {
+        if (Number(intervalo.intervaloKm) < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'O intervalo em KM não pode ser negativo.'
+            });
+        }
+    }
+}
+
 export default router;

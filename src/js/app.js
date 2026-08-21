@@ -79,6 +79,7 @@ const __dirname = path.dirname(__filename);
 // Este objeto 'app' é o núcleo da aplicação web
 const app = express();
 
+app.set('trust proxy', 1);
 // ============================================================
 // MIDDLEWARES GLOBAIS
 // ============================================================

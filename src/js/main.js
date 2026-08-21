@@ -175,6 +175,8 @@ async function renderizarGaragem() {
     const garagemVazia = document.getElementById("garagemVazia");
     const listaVeiculos = document.getElementById("listaVeiculos");
     const dataReferencia = obterDataReferencia();
+    const garagemCabecalho = document.getElementById("garagemCabecalho");
+    const contadorVeiculos = document.getElementById("contadorVeiculos");
 
     // Validação: se elementos não existem no DOM, retorna
     if (!garagemVazia || !listaVeiculos) {
@@ -185,6 +187,11 @@ async function renderizarGaragem() {
     if (veiculos.length === 0) {
         garagemVazia.style.display = "block";
         listaVeiculos.style.display = "none";
+
+        if(garagemCabecalho){
+            garagemCabecalho.style.display = "none";
+        }
+
         renderizarAlertasResumo();
         return;
     }
@@ -192,6 +199,19 @@ async function renderizarGaragem() {
     // Oculta mensagem de vazio e exibe grid de veículos
     garagemVazia.style.display = "none";
     listaVeiculos.style.display = "grid";
+
+    // Se há veiculos cadastrados, habilita o cabecalho de garagem
+    if (garagemCabecalho) {
+        garagemCabecalho.style.display = "flex";
+    }
+
+    // Se há veiculos cadastrados, mostra a quantidade de veiculos
+    if (contadorVeiculos){
+        const quantidade = veiculos.length;
+        const textoVeiculos = quantidade === 1 ? "veículo" : "veículos";
+
+        contadorVeiculos.textContent = `${quantidade} ${textoVeiculos} sob controle`;
+    }
 
     // Renderiza cada veículo como um card HTML
     listaVeiculos.innerHTML = veiculos.map(function (veiculo) {
@@ -224,37 +244,60 @@ async function renderizarGaragem() {
             }
         }
 
-        return "<div class=\"veiculo__card\">" +
-            "<div style=\"display: flex; justify-content: space-between; align-items: flex-start;\">" +
-            "<h2 class=\"veiculo__card__titulo\">" + veiculo.apelido + "</h2>" +
-            alertaBadge +
-            "</div>" +
-            "<p class=\"veiculo__card__info\">" + (veiculo.marca || "") + " " + (veiculo.modelo || "") + "</p>" +
-            "<p class=\"veiculo__card__info\">Ano: " + (veiculo.ano || "-") + " | Placa: " + (veiculo.placa || "-") + "</p>" +
-            "<p class=\"veiculo__card__info\">KM atual (Aproximadamente): " + calcularKmAtualEstimado(veiculo, dataReferencia) + "</p>" +
-            "<p class=\"veiculo__card__info veiculo__card__manutencoes\">Manutenções: " + totalManutencoes + "</p>" +
-            "<div class=\"veiculo__card__buttons\">" +
-            "<button class=\"veiculo__card__button_detalhes\" data-id=\"" + veiculo._id + "\">Ver Detalhes</button>" +
-            "<button class=\"veiculo__card__button_excluir\" data-id=\"" + veiculo._id + "\">Excluir</button>" +
-            "</div>" +
-            "</div>";
+        return `
+            <div class="veiculo__card" data-id="${veiculo._id}" tabindex="0" role="link">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <h2 class="veiculo__card__titulo">${veiculo.apelido}</h2>
+                    ${alertaBadge}
+                </div>
+                <p class="veiculo__card__info">${veiculo.marca || ''} ${veiculo.modelo || ''}</p>
+                <p class="veiculo__card__info">
+                    Ano: ${veiculo.ano || '-'} | Placa: ${veiculo.placa || '-'}
+                </p>
+                <div class="veiculo__card__km">
+                    <span class="veiculo__card__km__label">KM ESTIMADO</span>
+                    <strong class="veiculo__card__km__valor">
+                        ${calcularKmAtualEstimado(veiculo, dataReferencia)} KM
+                    </strong>
+                </div>
+                <p class="veiculo__card__manutencoes">
+                    Manutenções: ${totalManutencoes}
+                </p>
+            </div>
+        `;
     }).join("");
 
-    // excluir veiculo do array (notificacao)
-    listaVeiculos.querySelectorAll(".veiculo__card__button_excluir").forEach(function (botao) {
-        botao.addEventListener("click", function () {
-            const confirmar = window.confirm("Tem certeza que deseja excluir este veículo?");
-            if (confirmar) {
-                excluirVeiculo(botao.dataset.id);
+    // // excluir veiculo do array (notificacao)
+    // listaVeiculos.querySelectorAll(".veiculo__card__button_excluir").forEach(function (botao) {
+    //     botao.addEventListener("click", function () {
+    //         const confirmar = window.confirm("Tem certeza que deseja excluir este veículo?");
+    //         if (confirmar) {
+    //             excluirVeiculo(botao.dataset.id);
+    //         }
+    //     });
+    // });
+
+    listaVeiculos.querySelectorAll(".veiculo__card").forEach(function (card) {
+        const abrirDetalhes = () => {
+            window.location.href = "./veiculo-detalhes.html?id=" + card.dataset.id;
+        };
+
+        card.addEventListener("click", abrirDetalhes);
+
+        card.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") { // tecla enter ou espaco
+                event.preventDefault();
+                abrirDetalhes();
             }
         });
+
     });
 
-    listaVeiculos.querySelectorAll(".veiculo__card__button_detalhes").forEach(function (botao) {
-        botao.addEventListener("click", function () {
-            window.location.href = "./veiculo-detalhes.html?id=" + botao.dataset.id;
-        });
-    });
+    // listaVeiculos.querySelectorAll(".veiculo__card__button_detalhes").forEach(function (botao) {
+    //     botao.addEventListener("click", function () {
+    //         window.location.href = "./veiculo-detalhes.html?id=" + botao.dataset.id;
+    //     });
+    // });
 
     renderizarAlertasResumo();
 }

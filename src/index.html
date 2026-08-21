@@ -47,6 +47,13 @@
             <button class="main__content__button_addCar" id="btnAddVeiculo">+ Adicionar veículo</button>
         </div>
 
+        <section class="main__garagem__cabecalho" id="garagemCabecalho" hidden>
+            <div>
+                <h1 class="main__garagem__titulo">GARAGEM</h1>
+                <p class="main__garagem__contador" id="contadorVeiculos">0 veiculos sob controle</p>
+            </div>
+        </section>
+
         <div class="main__list" id="listaVeiculos" style="display:none;"></div> <!--main.js-->
     </main>
 
@@ -54,7 +61,8 @@
 
 
     <script type="module" src="./js/main.js"></script>
-    <script>
+    <!-- Menu de sessão movido para session-menu.js. Mantido comentado para referência. -->
+    <!-- <script>
         // ============================================================
         // VERIFICAÇÃO DE AUTENTICAÇÃO (menu dinâmico)
         // ============================================================
@@ -84,5 +92,6 @@
             await fetch('/api/auth/logout', { method: 'POST' });
             window.location.href = '/login.html';
         });
-    </script>
+    </script> -->
+    <script type="module" src="./js/session-menu.js"></script>
 </body>

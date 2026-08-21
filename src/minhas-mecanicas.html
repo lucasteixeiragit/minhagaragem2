@@ -5,20 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minhas Mecânicas - Minha Garagem</title>
     <link rel="stylesheet" href="styles/auth.css">
+    <link rel="stylesheet" href="styles/style.css">
     <link rel="icon" type="image/png" href="assets/favicons/favicon.png">
 </head>
 <body>
     <header class="header">
         <div class="header__div">
             <a href="/" class="header__home">
-                <span class="header__home__icon">🏠</span>
-                Minha Garagem
+                <span class="header__home__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                </span>
+                MINHA GARAGEM
             </a>
             <nav class="header__nav">
-                <a href="index.html">Garagem</a>
-                <a href="profile.html">Perfil</a>
-                <a href="minhas-mecanicas.html">Minhas Mecânicas</a>
-                <a href="#" id="btnLogout">Sair</a>
+                <a class="header__nav__garage" href="index.html">Garagem</a>
+                <a class="header__nav__addVeicle" href="./veiculo-novo.html">+ Adicionar Veiculo</a>
+                <a class="header__nav__addVeicle" href="./termos.html">Termos</a>
+                <a class="header__nav__addVeicle" href="profile.html">Perfil</a>
+                <a class="header__nav__addVeicle" href="minhas-mecanicas.html">Minhas Mecânicas</a>
+                <a class="header__nav__addVeicle" href="#" id="btnLogout">Sair</a>
             </nav>
         </div>
     </header>
@@ -52,7 +59,8 @@
         </div>
     </main>
 
-    <script>
+    <!-- Script de vínculos movido para módulo externo. Mantido comentado para referência. -->
+    <!-- <script>
         // ============================================================
         // MINHAS MECÂNICAS (CLIENTE) - Frontend
         // ============================================================
@@ -303,6 +311,7 @@
                 mostrarAlerta('Erro ao desativar vínculo.');
             }
         };
-    </script>
+    </script> -->
+    <script type="module" src="./js/minhas-mecanicas.js"></script>
 </body>
 </html>
