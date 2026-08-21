@@ -2,13 +2,13 @@
 # SCRIPT: gerar-documentacao.ps1
 # DESCRICAO: Gera a documentacao completa do projeto em .docx
 #            usando automacao do Microsoft Word (COM).
-# USO: powershell -ExecutionPolicy Bypass -File scripts\gerar-documentacao.ps1
+# USO: powershell -ExecutionPolicy Bypass -File docs\gerar-documentacao.ps1
 # ============================================================
 
 $ErrorActionPreference = "Stop"
 
 # Caminho de saida
-$OUTPUT = "C:\Users\lucas\Documents\GitHub\minhagaragem\Documentacao_Projeto.docx"
+$OUTPUT = "C:\Users\lucas\Documents\GitHub\minhagaragem\docs\Documentacao_Sincronizacao_local-server.docx"
 
 # ============================================================
 # INICIA O WORD
@@ -254,7 +254,7 @@ Add-Heading2 "5.1 Conceito"
 Add-Para "O banco de producao fica no servidor. Para desenvolver com os mesmos dados, voce copia o banco do servidor para o seu PC. Isso e uma copia pontual (snapshot): os dados locais passam a ser identicos aos do servidor no momento da copia."
 
 Add-Heading2 "5.2 O script sync-banco.ps1"
-Add-Para "O arquivo scripts/sync-banco.ps1 automatiza todo o processo em 4 passos:"
+Add-Para "O arquivo docs/sync-banco.ps1 automatiza todo o processo em 4 passos:"
 Add-Numbered "Dump no servidor: roda 'mongodump' no servidor, gerando uma copia do banco em /home/ubuntu/dump_sync."
 Add-Numbered "Transferencia: usa 'scp' (via SSH) para copiar o dump do servidor para o seu PC."
 Add-Numbered "Restore local: usa 'mongorestore --drop' para substituir o banco local pelos dados do servidor."
@@ -294,7 +294,7 @@ Add-Numbered "Confira em https://minhagaragem.duckdns.org"
 Add-Para "IMPORTANTE: edite SEMPRE na pasta minhagaragem. A pasta minhagaragem2 e uma copia antiga e nao deve ser usada."
 
 Add-Heading2 "6.3 Sincronizar o banco do servidor para o PC"
-Add-Numbered "No terminal, na pasta do projeto, rode: powershell -ExecutionPolicy Bypass -File scripts\sync-banco.ps1"
+Add-Numbered "No terminal, na pasta do projeto, rode: powershell -ExecutionPolicy Bypass -File docs\sync-banco.ps1"
 Add-Numbered "Aguarde a conclusao (o script mostra cada passo)."
 Add-Numbered "O banco local agora tem os mesmos dados do servidor."
 
@@ -361,7 +361,7 @@ Add-Table @("Comando", "O que faz") @(
     @("git add -A", "Prepara todas as alteracoes para commit"),
     @("git commit -m ""msg""", "Cria o commit"),
     @("git push origin main", "Envia para o GitHub e dispara o deploy"),
-    @("powershell -ExecutionPolicy Bypass -File scripts\sync-banco.ps1", "Sincroniza o banco do servidor para o PC"),
+    @("powershell -ExecutionPolicy Bypass -File docs\sync-banco.ps1", "Sincroniza o banco do servidor para o PC"),
     @("ssh oracle", "Abre terminal no servidor"),
     @("ssh oracle ""systemctl status minhagaragem""", "Verifica o status do servico no servidor"),
     @("ssh oracle ""journalctl -u minhagaragem -n 50""", "Ve os logs do servico")
