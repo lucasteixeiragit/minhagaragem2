@@ -25,7 +25,7 @@ function calcularKmAtualEstimado(veiculo, dataReferencia = new Date()) {
     const kmMensal = parseInt(veiculo.kmMensal) || 0;
     const dataLeitura = veiculo.dataLeitura ? new Date(veiculo.dataLeitura + 'T00:00:00') : null;
 
-    if (!dataLeitura || !kmMensal) {
+    if (!dataLeitura || Number.isNaN(dataLeitura.getTime()) || Number.isNaN(dataReferencia.getTime()) || !kmMensal) {
         return kmAtual;
     }
 

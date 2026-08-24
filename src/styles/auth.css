@@ -6,16 +6,26 @@
     box-sizing: border-box;
 }
 
-body {
+/* body {
     min-height: 100vh;
     background-color: oklch(0.11 0.005 280);
     font-family: "Inter", sans-serif;
     color: #fff;
     display: flex;
     flex-direction: column;
+} */
+body {
+    height: 100vh;  /* fazer com que ocupe a tela inteira do navegador */
+    background-color: oklch(0.11 0.005 280);
+    font-family: "Inter", sans-serif;
+    color: #fff;
+
+    
 }
 
-/* ===================== HEADER ====================== */
+
+/* ===================== HEADER DUPLICADO (DESABILITADO) ====================== */
+/*
 .header {
     display: block;
     box-sizing: border-box;
@@ -58,12 +68,6 @@ body {
     color: oklch(0.62 0.22 25);
 }
 
-.header__nav {
-    display: flex;
-    gap: 30px;
-    align-items: center;
-}
-
 .header__nav a {
     color: oklch(0.62 0.22 25);
     font-family: "Inter", sans-serif;
@@ -77,6 +81,7 @@ body {
     transform: scale(1.05);
     box-shadow: 0 0 5px;
 }
+*/
 
 /* ===================== AUTH CONTAINER ====================== */
 .auth-container {
@@ -584,11 +589,13 @@ body {
 
 /* ===================== RESPONSIVE ====================== */
 @media (max-width: 768px) {
+    /*
     .header__div {
         padding-left: 5%;
         padding-right: 5%;
         gap: 20%;
     }
+    */
 
     .profile-info {
         grid-template-columns: 1fr;

@@ -281,3 +281,240 @@
     background: oklch(0.15 0.01 265);
     border-color: oklch(0.5 0.1 25);
 }
+
+
+/* ================== DIV DE RESUMO DO VEICULO (km estimado), (media mensal), (manutencoes), (total investido)===================== */
+
+.veiculo__resumo {
+    border: 1px solid oklch(0.29 0.018 265);
+    border-radius: 8px;
+    padding: 28px;
+    background:
+        linear-gradient(115deg, oklch(61.013% 0.2439 29.757 / 0.45), transparent 45%),
+        oklch(0.09 0.008 280);
+    box-shadow: 0 16px 36px oklch(36.123% 0.00692 17.153 / 0.18);
+}
+
+.veiculo__resumo__topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+.veiculo__marca {
+    margin: 0 0 6px;
+    color: oklch(0.72 0.035 260);
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.veiculo__titulo {
+    margin: 0 0 8px;
+    color: white;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 2.8rem;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.veiculo__dados {
+    margin: 0;
+    color: oklch(0.68 0.02 260);
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+}
+
+.veiculo__acoes {
+    display: flex;
+    gap: 8px;
+}
+
+.btn__editar {
+    padding: 9px 16px;
+    border: 1px solid oklch(0.26 0.012 265);
+    border-radius: 4px;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+}
+
+.btn__editar:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.veiculo__metricas {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-top: 30px;
+}
+
+.veiculo__metrica {
+    min-height: 82px;
+    padding: 16px;
+    border: 1px solid oklch(0.25 0.014 265);
+    border-radius: 6px;
+    background: oklch(0.105 0.009 280);
+}
+
+.veiculo__metrica__label {
+    display: block;
+    margin-bottom: 7px;
+    color: oklch(0.72 0.025 260);
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+}
+
+.veiculo__metrica__valor {
+    color: oklch(0.97 0.01 140);
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+}
+
+/* ============== PROXIMA REVISAO ============= */
+
+.proxima__revisao {
+    margin-bottom: 32px;
+    padding: 22px 24px;
+    border: 1px solid oklch(0.52 0.14 150 / 0.7);
+    border-radius: 8px;
+    background: linear-gradient(110deg, oklch(0.2 0.08 150 / 0.32), oklch(0.1 0.012 280));
+    box-shadow: 0 12px 28px oklch(0 0 0 / 0.14);
+}
+
+.proxima__revisao__titulo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.proxima__revisao__titulo h2 {
+    margin: 0;
+    color: oklch(0.82 0.15 150);
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.45rem;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.proxima__revisao__icone::before {
+    content: "✓";
+}
+
+.proxima__revisao__icone {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    color: oklch(0.78 0.16 150);
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.proxima__revisao__status {
+    padding: 4px 9px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    color: oklch(0.82 0.15 150);
+    font-family: "Inter", sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.proxima__revisao__mensagem {
+    margin: 15px 0 6px 32px;
+    color: oklch(0.86 0.08 150);
+    font-family: "Inter", sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.proxima__revisao__mensagem strong {
+    color: oklch(0.93 0.12 150);
+    font-weight: 700;
+}
+
+.proxima__revisao__detalhes {
+    margin: 0 0 0 32px;
+    color: oklch(0.7 0.025 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+/* ============ ALERTAS ================== */
+.proxima__revisao--alerta,
+.proxima__revisao--urgente,
+.proxima__revisao--atrasada {
+    background: oklch(0.18 0.08 25 / 0.2);
+    border-color: oklch(0.55 0.2 25);
+}
+
+.proxima__revisao--alerta .proxima__revisao__titulo h2,
+.proxima__revisao--urgente .proxima__revisao__titulo h2,
+.proxima__revisao--atrasada .proxima__revisao__titulo h2 {
+    color: oklch(0.7 0.18 25);
+}
+
+.proxima__revisao--alerta,
+.proxima__revisao--urgente,
+.proxima__revisao--atrasada {
+    background: linear-gradient(110deg, oklch(0.2 0.09 25 / 0.3), oklch(0.1 0.012 280));
+}
+
+.proxima__revisao--alerta .proxima__revisao__icone,
+.proxima__revisao--urgente .proxima__revisao__icone,
+.proxima__revisao--atrasada .proxima__revisao__icone,
+.proxima__revisao--alerta .proxima__revisao__status,
+.proxima__revisao--urgente .proxima__revisao__status,
+.proxima__revisao--atrasada .proxima__revisao__status {
+    color: oklch(0.78 0.16 25);
+}
+
+@media (max-width: 700px) {
+    .veiculo__resumo__topo {
+        flex-direction: column;
+    }
+
+    .veiculo__acoes {
+        width: 100%;
+    }
+
+    .veiculo__acoes .btn__adicionar {
+        width: 100%;
+    }
+
+    .veiculo__metricas {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 420px) {
+    .veiculo__resumo {
+        padding: 20px;
+    }
+
+    .veiculo__metricas {
+        grid-template-columns: 1fr;
+    }
+
+    .proxima__revisao {
+        padding: 18px;
+    }
+
+    .proxima__revisao__mensagem,
+    .proxima__revisao__detalhes {
+        margin-left: 0;
+    }
+}

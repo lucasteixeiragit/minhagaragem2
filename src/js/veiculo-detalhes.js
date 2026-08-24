@@ -107,20 +107,52 @@ const dataReferencia = obterDataReferencia();
 
     document.getElementById('veiculoTitulo').textContent = veiculo.apelido;
 
-    const infoHTML = `
-        <p>${veiculo.marca || ''} ${veiculo.modelo || ''}</p>
-        <p>Ano: ${veiculo.ano || '-'} | Placa: ${veiculo.placa || '-'}</p>
-        <p>KM atual: ${calcularKmAtualEstimado(veiculo, dataReferencia)}</p>
-        <p>Data de referência: ${dataReferencia.toLocaleDateString('pt-BR')}</p>
-    `;
-    document.getElementById('veiculoInfo').innerHTML = infoHTML;
+    // Informacoes a serem exibidas
+    const kmEstimado = calcularKmAtualEstimado (veiculo, dataReferencia); // KM Estimado
+    const totalManutencoes = veiculo.manutencoes.length; // N de manutencoes
+    // soma total investido em manutencoes
+    const totalInvestido = veiculo.manutencoes.reduce((total, manutencao) => {
+        return total + (Number(manutencao.custo) || 0); 
+    }, 0);
+
+    document.getElementById('veiculoMarca').textContent =
+        `${veiculo.marca || ''} ${veiculo.modelo || ''}`.trim().toUpperCase(); // marca e modelo
+
+    document.getElementById('veiculoTitulo').textContent =
+        veiculo.apelido || 'Veículo'; // Apelido
+
+    document.getElementById('veiculoDados').textContent =
+        `${veiculo.ano || '-'} | ${veiculo.placa || '-'}`; // Ano e Placa
+
+    document.getElementById('kmEstimado').textContent =
+        `${kmEstimado.toLocaleString('pt-BR')} KM`; // Km estimado
+
+    document.getElementById('kmMensal').textContent =
+        `${(Number(veiculo.kmMensal) || 0).toLocaleString('pt-BR')} KM`; // Media de km mensal
+
+    document.getElementById('totalManutencoes').textContent =
+        totalManutencoes; // numero de manutencoes
+
+    document.getElementById('totalInvestido').textContent =
+        formatarMoeda(totalInvestido); // total investido
+
+
 
     document.getElementById('btnAdicionarManutencao').addEventListener('click', () => {
         window.location.href = `./manutencao-nova.html?veiculoId=${veiculoId}`;
     });
 
+    document.getElementById('btnEditar').addEventListener('click', () => {
+        window.location.href = `./veiculo-editar.html?id=${veiculoId}`;
+    });
+
+    document.getElementById('btnVoltar').addEventListener('click', () => {
+        window.location.href = './index.html'
+    })
+
     renderizarAlertas();
     renderizarManutencoes();
+    renderizarProximaRevisao();
 })();
 
 // ============================================================
@@ -264,3 +296,50 @@ function renderizarManutencoes() {
         });
     });
 }
+
+function renderizarProximaRevisao() {
+    //HTML vai puxar as informacoes a exibir dessas const
+    const secao = document.getElementById('proximaRevisao');
+    const status = document.getElementById('proximaRevisaoStatus'); // Em breve / atrasada
+    const mensagem = document.getElementById('proximaRevisaoMensagem'); // prox revisao em .... Faltam ...
+    const detalhes = document.getElementById('proximaRevisaoDetalhes'); // ultima revisao... intervalos....
+
+    const manutencoes = calcularProximasManutencoes(veiculo,dataReferencia);
+    //se nao tem manutencoes, secao nao aparece
+    if(!manutencoes.length) {
+        secao.style.display = 'none';
+        return;
+    }
+
+    // funcao ja ordenada as manutencoes pela urgencia e depois pela menor quantidade de km restante
+    const proxima = manutencoes[0];
+
+    secao.style.display = 'block';
+    secao.className = `proxima__revisao proxima__revisao--${proxima.status}`;
+    status.textContent = proxima.status === 'ok' ? 'Em dia' : getStatusText(proxima.status);
+
+    if(proxima.kmRestantes <= 0) {
+        mensagem.innerHTML =
+            `A revisão está atrasada em ` +
+            `<strong>${Math.abs(proxima.kmRestantes).toLocaleString('pt-BR')} km</strong>.`;
+    } else {
+        const kmMensal = Number(veiculo.kmMensal) || 0;
+        const mesesEstimados = kmMensal > 0
+            ? (proxima.kmRestantes / kmMensal).toFixed(1)
+            : null;
+
+        mensagem.innerHTML =
+            `Próxima revisão aos ` +
+            `<strong>${proxima.kmProximaManutencao.toLocaleString('pt-BR')} km</strong>. ` +
+            `Faltam ` +
+            `<strong>${proxima.kmRestantes.toLocaleString('pt-BR')} km</strong>` +
+            `${mesesEstimados ? ` — aproximadamente ${mesesEstimados} meses no seu ritmo.` : '.'}`;
+    }
+
+    detalhes.textContent =
+        `Última revisão: ${
+            proxima.ultimaManutencao
+                ? `KM ${Number(proxima.ultimaManutencao.km).toLocaleString('pt-BR')}`
+                : 'nenhuma registrada'
+        } • Intervalo: ${Number(proxima.intervaloKm).toLocaleString('pt-BR')} km`;
+};

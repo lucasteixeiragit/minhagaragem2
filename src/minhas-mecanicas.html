@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minhas Mecânicas - Minha Garagem</title>
     <link rel="stylesheet" href="styles/auth.css">
+    <link rel="stylesheet" href="styles/style.css">
     <link rel="icon" type="image/png" href="assets/favicons/favicon.png">
 </head>
 <body>
@@ -19,10 +20,12 @@
                 MINHA GARAGEM
             </a>
             <nav class="header__nav">
-                <a href="index.html">Garagem</a>
-                <a href="profile.html">Perfil</a>
-                <a href="minhas-mecanicas.html">Minhas Mecânicas</a>
-                <a href="#" id="btnLogout">Sair</a>
+                <a class="header__nav__garage" href="index.html">Garagem</a>
+                <a class="header__nav__addVeicle" href="./veiculo-novo.html">+ Adicionar Veiculo</a>
+                <a class="header__nav__addVeicle" href="./termos.html">Termos</a>
+                <a class="header__nav__addVeicle" href="profile.html">Perfil</a>
+                <a class="header__nav__addVeicle" href="minhas-mecanicas.html">Minhas Mecânicas</a>
+                <a class="header__nav__addVeicle" href="#" id="btnLogout">Sair</a>
             </nav>
         </div>
     </header>
@@ -56,7 +59,8 @@
         </div>
     </main>
 
-    <script>
+    <!-- Script de vínculos movido para módulo externo. Mantido comentado para referência. -->
+    <!-- <script>
         // ============================================================
         // MINHAS MECÂNICAS (CLIENTE) - Frontend
         // ============================================================
@@ -307,6 +311,7 @@
                 mostrarAlerta('Erro ao desativar vínculo.');
             }
         };
-    </script>
+    </script> -->
+    <script type="module" src="./js/minhas-mecanicas.js"></script>
 </body>
 </html>

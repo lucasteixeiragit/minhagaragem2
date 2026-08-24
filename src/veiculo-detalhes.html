@@ -31,15 +31,70 @@
 
     <main class="main">
         <div class="veiculo__header">
-            <button class="btn__voltar" onclick="window.location.href='./index.html'">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+            <button class="btn__voltar" id="btnVoltar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
                 </svg>
-                Voltar
+                Garagem
             </button>
-            <h1 class="veiculo__titulo" id="veiculoTitulo"></h1>
-            <div class="veiculo__info" id="veiculoInfo"></div>
+        
+            <div class="veiculo__resumo">
+                <div class="veiculo__resumo__topo">
+                    <div>
+                        <p class="veiculo__marca" id="veiculoMarca"></p>
+                        <h1 class="veiculo__titulo" id="veiculoTitulo"></h1>
+                        <p class="veiculo__dados" id="veiculoDados"></p>
+                    </div>
+        
+                    <div class="veiculo__acoes">
+                        <button class="btn__editar" id="btnEditar">
+                            Editar
+                        </button>
+        
+                        <button class="btn__adicionar" id="btnAdicionarManutencao">
+                            + Nova manutenção
+                        </button>
+                    </div>
+                </div>
+        
+                <div class="veiculo__metricas">
+                    <div class="veiculo__metrica">
+                        <span class="veiculo__metrica__label">KM ESTIMADO HOJE</span>
+                        <strong class="veiculo__metrica__valor" id="kmEstimado"></strong>
+                    </div>
+        
+                    <div class="veiculo__metrica">
+                        <span class="veiculo__metrica__label">MÉDIA MENSAL</span>
+                        <strong class="veiculo__metrica__valor" id="kmMensal"></strong>
+                    </div>
+        
+                    <div class="veiculo__metrica">
+                        <span class="veiculo__metrica__label">MANUTENÇÕES</span>
+                        <strong class="veiculo__metrica__valor" id="totalManutencoes"></strong>
+                    </div>
+        
+                    <div class="veiculo__metrica">
+                        <span class="veiculo__metrica__label">TOTAL INVESTIDO</span>
+                        <strong class="veiculo__metrica__valor" id="totalInvestido"></strong>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <section class="proxima__revisao" id="proximaRevisao" style="display: none;">
+            <div class="proxima__revisao__titulo">
+                <span class="proxima__revisao__icone"></span>
+                
+                <h2>PROXIMA REVISÃO</h2>
+
+                <span class="proxima__revisao__status" id="proximaRevisaoStatus">Em dia</span>
+            </div>
+
+            <p class="proxima__revisao__mensagem" id="proximaRevisaoMensagem"></p>
+            <p class="proxima__revisao__detalhes" id="proximaRevisaoDetalhes"></p>
+
+        </section>
 
         <div class="alertas__section" id="alertasSection" style="display:none;">
             <h2 class="alertas__titulo">⚠️ Manutenções Preventivas</h2>
@@ -49,7 +104,7 @@
         <div class="manutencoes__section">
             <div class="manutencoes__header">
                 <h2 class="manutencoes__titulo">Manutenções Realizadas</h2>
-                <button class="btn__adicionar" id="btnAdicionarManutencao">+ Nova Manutenção</button>
+                <!-- <button class="btn__adicionar" id="btnAdicionarManutencao">+ Nova Manutenção</button> -->
             </div>
 
             <div class="manutencoes__vazio" id="manutencoesVazio" style="display:none;">
@@ -62,13 +117,15 @@
     </main>
 
     <script type="module" src="./js/veiculo-detalhes.js"></script>
-    <script>
+    <!-- Guarda de sessão movida para session-guard.js. Mantida comentada para referência. -->
+    <!-- <script>
         (async function verificarSessao() {
             try {
                 const res = await fetch('/api/auth/me');
                 if (!res.ok) window.location.href = '/login.html';
             } catch (e) { window.location.href = '/login.html'; }
         })();
-    </script>
+    </script> -->
+    <script type="module" src="./js/session-guard.js"></script>
 </body>
 </html>

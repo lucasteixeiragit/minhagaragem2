@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar veículo - Minha Garagem</title>
+
+    <link rel="stylesheet" href="./styles/style.css">
+    <link rel="stylesheet" href="./styles/veiculo-novo.css">
+    <link rel="icon" href="./assets/favicons/favicon.png">
+</head>
+<body>
+    <header class="header">
+        <div class="header__div">
+            <a class="header__home" href="./index.html">
+                <span class="header__home__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                </span>
+                MINHA GARAGEM
+            </a>
+
+            <nav class="header__nav">
+                <a class="header__nav__garage" href="./index.html">
+                    Garagem
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <button class="btn__voltar" id="btnVoltar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M19 12H5M12 19l-7-7 7-7"></path>
+            </svg>
+            <span>Voltar para o veículo</span>
+        </button>
+
+        <h1 class="form__title">EDITAR VEÍCULO</h1>
+
+        <form class="form__card" id="formEditarVeiculo">
+            <h2 class="form__card__subtitle">Dados do veículo</h2>
+
+            <div class="form__field">
+                <label class="form__label" for="apelido">APELIDO</label>
+                <input class="form__input" id="apelido" required>
+            </div>
+
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="marca">MARCA</label>
+                    <select class="form__input" id="marca" required>
+                        <option value="">Carregando marcas...</option>
+                    </select>
+                </div>
+
+                <div class="form__field">
+                    <label class="form__label" for="modelo">MODELO</label>
+                    <select class="form__input" id="modelo" required disabled>
+                        <option value="">Selecione a marca primeiro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="versao">VERSÃO</label>
+                    <select class="form__input" id="versao" required disabled>
+                        <option value="">Selecione o modelo primeiro</option>
+                    </select>
+                </div>
+
+                <div class="form__field">
+                    <label class="form__label" for="ano">ANO</label>
+                    <select class="form__input" id="ano" required disabled>
+                        <option value="">Selecione a versão primeiro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="cambio">CÂMBIO</label>
+                    <select class="form__input" id="cambio" required disabled>
+                        <option value="">Selecione a versão primeiro</option>
+                    </select>
+                </div>
+
+                <div class="form__field">
+                    <label class="form__label" for="placa">PLACA</label>
+                    <input class="form__input" id="placa">
+                </div>
+            </div>
+
+            <h2 class="form__card__subtitle form__card__subtitle--spaced">
+                Quilometragem
+            </h2>
+
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="kmAtual">
+                        KM ATUAL
+                    </label>
+                    <input class="form__input" type="number" id="kmAtual">
+                </div>
+
+                <div class="form__field">
+                    <label class="form__label" for="dataLeitura">
+                        DATA DA LEITURA
+                    </label>
+                    <input class="form__input__calendar" type="date" id="dataLeitura">
+                </div>
+            </div>
+
+            <div class="form__field">
+                <label class="form__label" for="kmMensal">
+                    MÉDIA DE KM POR MÊS
+                </label>
+                <input class="form__input" type="number" id="kmMensal">
+            </div>
+
+            <h2 class="form__card__subtitle form__card__subtitle--spaced">
+                Intervalos de manutenção
+            </h2>
+
+            <p class="form__helper">
+                Esses valores são personalizados para este veículo.
+            </p>
+
+            <div id="intervalosManutencoesContainer"></div>
+
+            <div class="form__actions">
+                <button class="form__submit" type="submit">
+                    Salvar alterações
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script type="module" src="./js/veiculo-editar.js"></script>
+    <script type="module" src="./js/session-guard.js"></script>
+</body>
+</html>
