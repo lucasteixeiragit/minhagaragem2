@@ -139,6 +139,63 @@ router.delete('/:manutencaoId', requireAuth, async (req, res) => {
 });
 
 // ============================================================
+// PUT /api/vehicles/:id/maintenance/:manutencaoId
+// PROPÓSITO: Atualiza uma manutenção específica do veículo
+// REGRAS DE ACESSO (Fase 6 - Vínculos):
+//   - USER dono: pode editar manutenção do seu próprio veículo
+//   - MECANICA: apenas se houver vínculo ATIVO com o proprietário do veículo
+//   - ADMIN: acesso total
+//   - Whitelist de campos no body
+// ============================================================
+router.put('/:manutencaoId', requireAuth, async (req, res) => {
+    try {
+        const dados = extrairCamposManutencao(req.body);
+
+        if (Object.keys(dados).length === 0) {
+            return res.status(400).json({ success: false, message: 'Nenhum campo para atualizar.' });
+        }
+
+        if (req.user.role === 'ADMIN') {
+            const veiculo = await Veiculo.buscarPorIdAdmin(req.params.id);
+            if (!veiculo) {
+                return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
+            }
+            await Veiculo.atualizarManutencao(req.params.id, req.params.manutencaoId, dados);
+        } else if (req.user.role === 'MECANICA') {
+            const temAcesso = await verificarAcessoManutencao(req.user._id, req.params.id);
+            if (!temAcesso) {
+                return res.status(403).json({ success: false, message: 'Você não tem acesso a este veículo.' });
+            }
+            await Veiculo.atualizarManutencao(req.params.id, req.params.manutencaoId, dados);
+        } else {
+            const resultado = await Veiculo.atualizarManutencaoDoProprietario(
+                req.params.id,
+                req.user._id,
+                req.params.manutencaoId,
+                dados
+            );
+            if (resultado.matchedCount === 0) {
+                return res.status(404).json({ success: false, message: 'Veículo ou manutenção não encontrado.' });
+            }
+        }
+
+        await registrarAuditoria({
+            userId: req.user._id,
+            action: 'UPDATE_MAINTENANCE',
+            resource: 'veiculo',
+            resourceId: req.params.id,
+            ip: req.ip,
+            userAgent: req.get('user-agent')
+        });
+
+        res.json({ success: true, message: 'Manutenção atualizada.' });
+    } catch (error) {
+        console.error('Erro ao atualizar manutenção:', error);
+        res.status(500).json({ success: false, message: 'Erro ao atualizar manutenção.' });
+    }
+});
+
+// ============================================================
 // PATCH /api/vehicles/:id/maintenance/km
 // PROPÓSITO: Atualiza a quilometragem atual do veículo
 // REGRAS DE ACESSO (Fase 6 - Vínculos):
