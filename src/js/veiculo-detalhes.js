@@ -366,7 +366,7 @@ function renderizarProximaRevisao() {
             : null;
 
         mensagem.innerHTML =
-            `Próxima revisão aos ` +
+            `Próxima revisão: <strong>${proxima.nome}</strong> aos ` +
             `<strong>${proxima.kmProximaManutencao.toLocaleString('pt-BR')} km</strong>. ` +
             `Faltam ` +
             `<strong>${proxima.kmRestantes.toLocaleString('pt-BR')} km</strong>` +
@@ -375,8 +375,8 @@ function renderizarProximaRevisao() {
 
     detalhes.textContent =
         `Última revisão: ${
-            proxima.ultimaManutencao
-                ? `KM ${Number(proxima.ultimaManutencao.km).toLocaleString('pt-BR')}`
+            proxima.ultimaManutencao        
+                ? `${proxima.nome} — KM ${Number(proxima.ultimaManutencao.km).toLocaleString('pt-BR')}`
                 : 'nenhuma registrada'
         } • Intervalo: ${Number(proxima.intervaloKm).toLocaleString('pt-BR')} km`;
 };
