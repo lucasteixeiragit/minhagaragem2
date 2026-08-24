@@ -51,6 +51,8 @@ async function excluirManutencao(veiculoId, manutencaoId) {
             alert(data.message || 'Erro ao excluir manutenção.');
             return;
         }
+
+        veiculo.manutencoes = veiculo.manutencoes.filter(m => m.id !== manutencaoId); // atualiza pagina apos exclusao
         // Re-renderiza listas
         renderizarManutencoes();
         renderizarAlertas();
