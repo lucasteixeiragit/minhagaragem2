@@ -373,6 +373,38 @@ class Veiculo {
         );
     }
 
+    // ========================================================
+    // MÉTODO: atualizarManutencao(veiculoId, manutencaoId, campos)
+    // ========================================================
+    // PROPÓSITO: Atualiza os campos de uma manutenção específica
+    // OPERADOR $: Posicional — atualiza o elemento do array que
+    //              corresponde ao filtro "manutencoes.id"
+    // ========================================================
+    static async atualizarManutencao(veiculoId, manutencaoId, campos) {
+        const db = getBanco();
+        const set = { atualizadoEm: new Date() };
+        Object.entries(campos).forEach(([campo, valor]) => {
+            set[`manutencoes.$.${campo}`] = valor;
+        });
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(veiculoId), 'manutencoes.id': manutencaoId },
+            { $set: set }
+        );
+    }
+
+    // Atualiza manutenção garantindo que o veículo pertence ao proprietário
+    static async atualizarManutencaoDoProprietario(veiculoId, ownerId, manutencaoId, campos) {
+        const db = getBanco();
+        const set = { atualizadoEm: new Date() };
+        Object.entries(campos).forEach(([campo, valor]) => {
+            set[`manutencoes.$.${campo}`] = valor;
+        });
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(veiculoId), ownerId: new ObjectId(ownerId), 'manutencoes.id': manutencaoId },
+            { $set: set }
+        );
+    }
+
     // Atualiza KM garantindo que o veículo pertence ao proprietário
     static async atualizarKmDoProprietario(veiculoId, ownerId, kmAtual, dataLeitura) {
         const db = getBanco();
