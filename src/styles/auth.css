@@ -271,6 +271,8 @@ body {
     font-weight: 600;
 }
 
+/* ========================== TIPO DE CONTA ======================== */
+
 .role-badge {
     display: inline-block;
     padding: 4px 12px;
@@ -281,22 +283,86 @@ body {
     letter-spacing: 0.5px;
 }
 
-.role-badge.USER {
+/* .role-badge.USER {
     background-color: oklch(0.5 0.15 250 / 20%);
     color: oklch(0.75 0.12 250);
     border: 1px solid oklch(0.55 0.15 250 / 40%);
+} */
+
+.role-badge.USER {
+    /* Fundo escuro de placa */
+    background-color: #202020;
+    color: #ffffff;
+    border: 2px solid #e63946;
+    border-radius: 6px;
+    padding: 10px 18px 7px 18px;
+    font-size: 0.95rem;
+    /* font-weight: 700; */
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    position: relative;
+    box-shadow: inset 0 0 0 2px #2a2a2a;
+}
+
+.role-badge.USER::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    height: 4px;
+    background-color: #e63946;
+    border-radius: 2px;
 }
 
 .role-badge.MECANICA {
-    background-color: oklch(0.5 0.15 80 / 20%);
-    color: oklch(0.75 0.12 80);
-    border: 1px solid oklch(0.55 0.15 80 / 40%);
+    background-color: #202020;
+    color: #ffffff;
+    border: 2px solid #e63946;
+    border-radius: 6px;
+    padding: 10px 18px 7px 18px;
+    font-size: 0.95rem;
+    /* font-weight: 700; */
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    position: relative;
+    box-shadow: inset 0 0 0 2px #2a2a2a;
+}
+
+.role-badge.MECANICA::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    height: 4px;
+    background-color: #e63946;
+    border-radius: 2px;
 }
 
 .role-badge.ADMIN {
-    background-color: oklch(0.5 0.2 25 / 20%);
-    color: oklch(0.75 0.15 25);
-    border: 1px solid oklch(0.55 0.2 25 / 40%);
+    background-color: #202020;
+    color: #ffffff;
+    border: 2px solid #e63946;
+    border-radius: 6px;
+    padding: 10px 18px 7px 18px;
+    font-size: 0.95rem;
+    /* font-weight: 700; */
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    position: relative;
+    box-shadow: inset 0 0 0 2px #2a2a2a;
+}
+
+.role-badge.ADMIN::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    height: 4px;
+    background-color: #e63946;
+    border-radius: 2px;
 }
 
 /* ===================== ADMIN ====================== */
