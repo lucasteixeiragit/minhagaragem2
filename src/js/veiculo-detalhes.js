@@ -177,6 +177,28 @@ function formatarMoeda(valor) {
     });
 }
 
+//Encontra o intervalo preventivo que corresponde o tipo da manutencao
+function encontrarIntervalo(manutencao, veiculo) {
+    const intervalos = veiculo.intervalosManutencoesPreventivas || {}; // transforma objeto em array pois .find procura arrays
+    return Object.values(intervalos).find(i => 
+        i.nome && manutencao.tipo && (i.nome.toLowerCase().includes(manutencao.tipo.toLowerCase()) || //.find procura o nome da manutencao e o tipo, //.includes pergunta se o nome do intervalo contem o tipo da manutencao
+    manutencao.tipo.toLowerCase().includes(i.nome.toLowerCase())) //segunda comparacao
+    ) || null;
+}
+
+//Calcula a proxima data somando intervalomeses a data da manutencao
+function calcularProximaData(manutencao, intervalo){ //recebe manutencao e o intervalo dela
+    if (!intervalo || !intervalo.intervaloMeses) return null; //Se não existe intervalo OU se não existe um intervalo em meses, não é possível calcular a próxima data
+    const data = new Date(manutencao.data + 'T00:00:00'); //Transformando a data em um objeto Date
+    data.setMonth(data.getMonth() + intervalo.intervaloMeses); //pega o mes da data e soma o intervalo
+    return data.toISOString().slice(0, 10); // toISOString() transforma a data em um formato semelhante a: 2027-08-20 com .slice que limita em 10 caracteres
+}
+
+function calcularProximoKm(manutencao, intervalo) {
+    if (!intervalo || !intervalo.intervaloKm) return null; //Se não existe intervalo OU se não existe um intervalo em meses, não é possível calcular a próxima data
+    const km = parseInt(manutencao.km) || 0; // transforma KM em int
+    return km + intervalo.intervaloKm;
+};
 // ============================================================
 // FUNÇÃO: renderizarAlertas()
 // ============================================================
@@ -264,6 +286,18 @@ function renderizarManutencoes() {
             `;
         }
 
+        const intervalo = encontrarIntervalo(manutencao, veiculo);
+        const proximaData = calcularProximaData(manutencao, intervalo);
+        const proximoKm = calcularProximoKm(manutencao, intervalo);
+
+        const proximaHTML = (proximaData || proximoKm) ? `
+            <div class="manutencao__card__info__item">
+                <span class="manutencao__card__info__label">Próxima:</span>
+                ${proximaData ? formatarData(proximaData) : '—'}
+                ${proximoKm ? ` / ${proximoKm.toLocaleString('pt-BR')} km` : ''}
+            </div>
+        ` : '';
+
         return `
             <div class="manutencao__card">
                 <div class="manutencao__card__header">
@@ -282,6 +316,7 @@ function renderizarManutencoes() {
                         <span class="manutencao__card__info__label">KM:</span>
                         ${manutencao.km || '-'}
                     </div>
+                    ${proximaHTML}
                 </div>
                 ${manutencao.descricao ? `<div class="manutencao__card__descricao">${manutencao.descricao}</div>` : ''}
                 ${notaHTML}
