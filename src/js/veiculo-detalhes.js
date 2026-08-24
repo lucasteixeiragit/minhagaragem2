@@ -304,6 +304,7 @@ function renderizarManutencoes() {
                     <h3 class="manutencao__card__tipo">${manutencao.tipo}</h3>
                     <div style="display: flex; gap: 12px; align-items: center;">
                         ${manutencao.custo ? `<span class="manutencao__card__custo">${formatarMoeda(manutencao.custo)}</span>` : ''}
+                        <button class="btn__editar__manutencao" data-id="${manutencao.id}">Editar</button>
                         <button class="btn__excluir__manutencao" data-id="${manutencao.id}">Excluir</button>
                     </div>
                 </div>
@@ -330,6 +331,12 @@ function renderizarManutencoes() {
             if (confirmar) {
                 excluirManutencao(veiculoId, botao.dataset.id);
             }
+        });
+    });
+
+    manutencoesLista.querySelectorAll('.btn__editar__manutencao').forEach(botao => {
+        botao.addEventListener('click', () => {
+            window.location.href = `./manutencao-editar.html?veiculoId=${veiculoId}&manutencaoId=${botao.dataset.id}`;
         });
     });
 }
