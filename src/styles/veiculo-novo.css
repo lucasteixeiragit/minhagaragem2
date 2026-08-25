@@ -40,11 +40,43 @@
 .form__card {
     box-sizing: border-box;
     width: 100%;
-    max-width: 700px;
+    max-width: 1180px;
     border: 2px solid oklch(0.26 0.012 265);
     border-radius: 8px;
     padding: 32px;
     background-image: radial-gradient(at center top, oklch(44.965% 0.18397 29.155 / 0.15), transparent 60%), linear-gradient(oklch(0.14 0.01 265) 0%, oklch(0.09 0.005 280) 100%);
+}
+
+.form__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px;
+}
+
+.form__column--intervalos {
+    min-width: 0;
+    padding-left: 32px;
+    border-left: 1px solid oklch(0.26 0.012 265);
+}
+
+@media (max-width: 900px) {
+    .form__layout {
+        grid-template-columns: 1fr;
+    }
+
+    .form__column--intervalos {
+        padding-top: 24px;
+        padding-left: 0;
+        border-top: 1px solid oklch(0.26 0.012 265);
+        border-left: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .form__row {
+        flex-direction: column;
+        gap: 0;
+    }
 }
 
 .form__card__subtitle {
