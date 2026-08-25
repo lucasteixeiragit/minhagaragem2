@@ -38,83 +38,89 @@
         <h1 class="form__title">NOVO VEÍCULO</h1>
 
         <form class="form__card" id="formNovoVeiculo">
-            <h2 class="form__card__subtitle">Dados do veículo</h2>
+            <div class="form__two-columns">
+                <div class="form__column">
+                    <h2 class="form__card__subtitle">Dados do veículo</h2>
 
-             <!-- armazena os dados em veiculo-novo.js -->
-            <div class="form__field">
-                <label class="form__label" for="apelido">APELIDO *</label>
-                <input class="form__input" type="text" id="apelido" name="apelido" placeholder="Ex.: Meu Civic" required>
+                    <!-- armazena os dados em veiculo-novo.js -->
+                    <div class="form__field">
+                        <label class="form__label" for="apelido">APELIDO *</label>
+                        <input class="form__input" type="text" id="apelido" name="apelido" placeholder="Ex.: Meu Civic" required>
+                    </div>
+
+                    <div class="form__row">
+                        <div class="form__field">
+                            <label class="form__label" for="marca">MARCA *</label>
+                            <select class="form__input" id="marca" name="marca" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="form__field">
+                            <label class="form__label" for="modelo">MODELO *</label>
+                            <select class="form__input" id="modelo" name="modelo" required disabled>
+                                <option value="">Selecione a marca primeiro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form__row">
+                        <div class="form__field">
+                            <label class="form__label" for="versao">VERSÃO *</label>
+                            <select class="form__input" id="versao" name="versao" required disabled>
+                                <option value="">Selecione o modelo primeiro</option>
+                            </select>
+                        </div>
+                        <div class="form__field">
+                            <label class="form__label" for="ano">ANO *</label>
+                            <select class="form__input" id="ano" name="ano" required disabled>
+                                <option value="">Selecione a versão primeiro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form__row">
+                        <div class="form__field">
+                            <label class="form__label" for="cambio">CÂMBIO *</label>
+                            <select class="form__input" id="cambio" name="cambio" required disabled>
+                                <option value="">Selecione a versão primeiro</option>
+                            </select>
+                        </div>
+                        <div class="form__field">
+                            <label class="form__label" for="placa">PLACA</label>
+                            <input class="form__input" type="text" id="placa" name="placa" placeholder="Ex.: ABC1D23">
+                        </div>
+                    </div>
+
+                    <h2 class="form__card__subtitle form__card__subtitle--spaced">Quilometragem</h2>
+
+                    <div class="form__row">
+                        <div class="form__field">
+                            <label class="form__label" for="kmAtual">KM ATUAL (DATA DE REFERÊNCIA)</label>
+                            <input class="form__input" type="number" id="kmAtual" name="kmAtual" placeholder="0">
+                        </div>
+                        <div class="form__field">
+                            <label class="form__label" for="dataLeitura">DATA DESTA LEITURA</label>
+                            <input class="form__input__calendar" type="date" id="dataLeitura" name="dataLeitura">
+                        </div>
+                    </div>
+
+                    <div class="form__row">
+                        <div class="form__field">
+                            <label class="form__label" for="kmMensal">KM RODADOS POR MÊS (MÉDIA)</label>
+                            <input class="form__input" type="number" id="kmMensal" name="kmMensal" placeholder="1000">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form__column">
+                    <h2 class="form__card__subtitle form__card__subtitle--spaced">
+                        Intervalos de Manutenção Preventiva
+                    </h2>
+                    <p class="form__helper">Os intervalos serão carregados automaticamente conforme o MANUAL DO FABRICANTE após selecionar marca e modelo. </p>
+                    <p class="form__helper">Altere os intervalos caso ache necessário.</p>
+                    <div id="intervalosManutencoesContainer"></div>
+                </div>
             </div>
-
-            <div class="form__row">
-                <div class="form__field">
-                    <label class="form__label" for="marca">MARCA *</label>
-                    <select class="form__input" id="marca" name="marca" required>
-                        <option value="">Selecione...</option>
-                    </select>
-                </div>
-                <div class="form__field">
-                    <label class="form__label" for="modelo">MODELO *</label>
-                    <select class="form__input" id="modelo" name="modelo" required disabled>
-                        <option value="">Selecione a marca primeiro</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form__row">
-                <div class="form__field">
-                    <label class="form__label" for="versao">VERSÃO *</label>
-                    <select class="form__input" id="versao" name="versao" required disabled>
-                        <option value="">Selecione o modelo primeiro</option>
-                    </select>
-                </div>
-                <div class="form__field">
-                    <label class="form__label" for="ano">ANO *</label>
-                    <select class="form__input" id="ano" name="ano" required disabled>
-                        <option value="">Selecione a versão primeiro</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form__row">
-                <div class="form__field">
-                    <label class="form__label" for="cambio">CÂMBIO *</label>
-                    <select class="form__input" id="cambio" name="cambio" required disabled>
-                        <option value="">Selecione a versão primeiro</option>
-                    </select>
-                </div>
-                <div class="form__field">
-                    <label class="form__label" for="placa">PLACA</label>
-                    <input class="form__input" type="text" id="placa" name="placa" placeholder="Ex.: ABC1D23">
-                </div>
-            </div>
-
-            <h2 class="form__card__subtitle form__card__subtitle--spaced">Quilometragem</h2>
-
-            <div class="form__row">
-                <div class="form__field">
-                    <label class="form__label" for="kmAtual">KM ATUAL (DATA DE REFERÊNCIA)</label>
-                    <input class="form__input" type="number" id="kmAtual" name="kmAtual" placeholder="0">
-                </div>
-                <div class="form__field">
-                    <label class="form__label" for="dataLeitura">DATA DESTA LEITURA</label>
-                    <input class="form__input__calendar" type="date" id="dataLeitura" name="dataLeitura">
-                </div>
-            </div>
-
-            <div class="form__row">
-                <div class="form__field">
-                    <label class="form__label" for="kmMensal">KM RODADOS POR MÊS (MÉDIA)</label>
-                    <input class="form__input" type="number" id="kmMensal" name="kmMensal" placeholder="1000">
-                </div>
-            </div>
-
-            <h2 class="form__card__subtitle form__card__subtitle--spaced">
-                Intervalos de Manutenção Preventiva
-            </h2>
-            <p class="form__helper">Os intervalos serão carregados automaticamente conforme o MANUAL DO FABRICANTE após selecionar marca e modelo. </p>
-            <p class="form__helper">Altere os intervalos caso ache necessário.</p>
-            <div id="intervalosManutencoesContainer"></div>
 
             <!-- envia comando para veiculo-novo.js para salvar o formulario com os dados -->
             <div class="form__actions">
