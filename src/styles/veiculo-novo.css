@@ -424,32 +424,3 @@ input[type="date"].form__input__calendar::-webkit-calendar-picker-indicator {
     font-size: 0.85rem;
     margin-bottom: 4px;
 }
-
-/* ============================================================
-   LAYOUT DE DUAS COLUNAS: DADOS DO VEÍCULO + INTERVALOS
-   ============================================================ */
-
-.form__two-columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    align-items: start;
-}
-
-.form__column {
-    min-width: 0;
-}
-
-/* Remove o margin-top do primeiro subtítulo de cada coluna */
-.form__column .form__card__subtitle:first-child {
-    margin-top: 0;
-    padding-top: 0;
-}
-
-/* Em telas menores, empilha as colunas */
-@media (max-width: 900px) {
-    .form__two-columns {
-        grid-template-columns: 1fr;
-        gap: 24px;
-    }
-}

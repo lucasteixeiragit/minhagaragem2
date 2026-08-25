@@ -40,101 +40,95 @@
         <h1 class="form__title">EDITAR VEÍCULO</h1>
 
         <form class="form__card" id="formEditarVeiculo">
-            <div class="form__two-columns">
-                <div class="form__column">
-                    <h2 class="form__card__subtitle">Dados do veículo</h2>
+            <h2 class="form__card__subtitle">Dados do veículo</h2>
 
-                    <div class="form__field">
-                        <label class="form__label" for="apelido">APELIDO</label>
-                        <input class="form__input" id="apelido" required>
-                    </div>
+            <div class="form__field">
+                <label class="form__label" for="apelido">APELIDO</label>
+                <input class="form__input" id="apelido" required>
+            </div>
 
-                    <div class="form__row">
-                        <div class="form__field">
-                            <label class="form__label" for="marca">MARCA</label>
-                            <select class="form__input" id="marca" required>
-                                <option value="">Carregando marcas...</option>
-                            </select>
-                        </div>
-
-                        <div class="form__field">
-                            <label class="form__label" for="modelo">MODELO</label>
-                            <select class="form__input" id="modelo" required disabled>
-                                <option value="">Selecione a marca primeiro</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form__row">
-                        <div class="form__field">
-                            <label class="form__label" for="versao">VERSÃO</label>
-                            <select class="form__input" id="versao" required disabled>
-                                <option value="">Selecione o modelo primeiro</option>
-                            </select>
-                        </div>
-
-                        <div class="form__field">
-                            <label class="form__label" for="ano">ANO</label>
-                            <select class="form__input" id="ano" required disabled>
-                                <option value="">Selecione a versão primeiro</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form__row">
-                        <div class="form__field">
-                            <label class="form__label" for="cambio">CÂMBIO</label>
-                            <select class="form__input" id="cambio" required disabled>
-                                <option value="">Selecione a versão primeiro</option>
-                            </select>
-                        </div>
-
-                        <div class="form__field">
-                            <label class="form__label" for="placa">PLACA</label>
-                            <input class="form__input" id="placa">
-                        </div>
-                    </div>
-
-                    <h2 class="form__card__subtitle form__card__subtitle--spaced">
-                        Quilometragem
-                    </h2>
-
-                    <div class="form__row">
-                        <div class="form__field">
-                            <label class="form__label" for="kmAtual">
-                                KM ATUAL
-                            </label>
-                            <input class="form__input" type="number" id="kmAtual">
-                        </div>
-
-                        <div class="form__field">
-                            <label class="form__label" for="dataLeitura">
-                                DATA DA LEITURA
-                            </label>
-                            <input class="form__input__calendar" type="date" id="dataLeitura">
-                        </div>
-                    </div>
-
-                    <div class="form__field">
-                        <label class="form__label" for="kmMensal">
-                            MÉDIA DE KM POR MÊS
-                        </label>
-                        <input class="form__input" type="number" id="kmMensal">
-                    </div>
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="marca">MARCA</label>
+                    <select class="form__input" id="marca" required>
+                        <option value="">Carregando marcas...</option>
+                    </select>
                 </div>
 
-                <div class="form__column">
-                    <h2 class="form__card__subtitle form__card__subtitle--spaced">
-                        Intervalos de manutenção
-                    </h2>
-
-                    <p class="form__helper">
-                        Esses valores são personalizados para este veículo.
-                    </p>
-
-                    <div id="intervalosManutencoesContainer"></div>
+                <div class="form__field">
+                    <label class="form__label" for="modelo">MODELO</label>
+                    <select class="form__input" id="modelo" required disabled>
+                        <option value="">Selecione a marca primeiro</option>
+                    </select>
                 </div>
             </div>
+
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="versao">VERSÃO</label>
+                    <select class="form__input" id="versao" required disabled>
+                        <option value="">Selecione o modelo primeiro</option>
+                    </select>
+                </div>
+
+                <div class="form__field">
+                    <label class="form__label" for="ano">ANO</label>
+                    <select class="form__input" id="ano" required disabled>
+                        <option value="">Selecione a versão primeiro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="cambio">CÂMBIO</label>
+                    <select class="form__input" id="cambio" required disabled>
+                        <option value="">Selecione a versão primeiro</option>
+                    </select>
+                </div>
+
+                <div class="form__field">
+                    <label class="form__label" for="placa">PLACA</label>
+                    <input class="form__input" id="placa">
+                </div>
+            </div>
+
+            <h2 class="form__card__subtitle form__card__subtitle--spaced">
+                Quilometragem
+            </h2>
+
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form__label" for="kmAtual">
+                        KM ATUAL
+                    </label>
+                    <input class="form__input" type="number" id="kmAtual">
+                </div>
+
+                <div class="form__field">
+                    <label class="form__label" for="dataLeitura">
+                        DATA DA LEITURA
+                    </label>
+                    <input class="form__input__calendar" type="date" id="dataLeitura">
+                </div>
+            </div>
+
+            <div class="form__field">
+                <label class="form__label" for="kmMensal">
+                    MÉDIA DE KM POR MÊS
+                </label>
+                <input class="form__input" type="number" id="kmMensal">
+            </div>
+
+            <h2 class="form__card__subtitle form__card__subtitle--spaced">
+                Intervalos de manutenção
+            </h2>
+
+            <p class="form__helper">
+                Esses valores são personalizados para este veículo.
+            </p>
+
+            <div id="intervalosManutencoesContainer"></div>
 
             <div class="form__actions">
                 <button class="form__submit" type="submit">
