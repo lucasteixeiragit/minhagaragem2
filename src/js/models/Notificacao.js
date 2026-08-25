@@ -5,14 +5,48 @@ import { getBanco } from '../config/database.js';
 // MongoDB usa ObjectId (12 bytes) ao invés de números sequenciais
 import { ObjectId } from 'mongodb';
 
-calcularNotificacoesPendentes()
+const COLECAO = 'notificacoes';
 
-criarNotificacao()
+class Notificacao {
+    // Cria uma notificação
+    static async criarNotificacao({ usuarioId, veiculoId, tipo, mensagem, dataVencimento }) {
+        const db = getBanco();
+        return await db.collection(COLECAO).insertOne({ // retorna as infos de db na COLECAO
+            usuarioId: new ObjectId(usuarioId),
+            veiculoId: new ObjectId(veiculoId),
+            tipo,
+            mensagem,
+            dataVencimento,
+            status: 'pendente',
+            criadaEm: new Date() 
+        });
+    }
 
-adiarNotificacao()
+    // Lista notificações pendentes de um usuário
+    static async listarPendentes(usuarioId) {
+        const db = getBanco();
+        return await db.collection(COLECAO)
+            .find({ usuarioId: new ObjectId(usuarioId), status: 'pendente' })
+            .toArray();
+    }
 
-marcarComoConcluida()
+    // Marca como concluída
+    static async marcarComoConcluida(id) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { status: 'concluida', concluidaEm: new Date() } }
+        );
+    }
 
-listarPendentes()
+    // Adia uma notificação
+    static async adiarNotificacao(id, novaData) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { dataVencimento: novaData, status: 'adiada' } }
+        );
+    }
+}
 
 export default Notificacao;
