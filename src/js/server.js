@@ -20,6 +20,9 @@ import { conectarBanco } from "./config/database.js";
 // Importa dotenv para carregar variáveis de ambiente do arquivo .env
 import dotenv from 'dotenv';
 
+import cron from 'node-cron';
+import { verificarManutencoesProximas } from './services/notificacaoService.js';
+
 // Carrega as variáveis de ambiente do arquivo .env para process.env
 // Isso deve ser feito o mais cedo possível no ciclo de vida da aplicação
 dotenv.config();
@@ -53,7 +56,7 @@ async function iniciarServidor() {
         // Garante que todas as rotas que dependem do banco terão acesso a ele
         // A função conectarBanco() está em config/database.js
         await conectarBanco();
-        
+
         // PASSO 2: Inicia o servidor HTTP
         // ============================================================
         // app.listen() vincula o servidor à porta especificada
@@ -68,7 +71,16 @@ async function iniciarServidor() {
             // - http://localhost:3000/api/veiculos → API de veículos
             // - http://localhost:3000/api/fabricantes → API de fabricantes
         });
-        
+
+
+
+        // callback para agendamento de envio de emails para notificacao
+        cron.schedule('0 8 * * *', () => {  // todos os dias às 08:00
+            console.log('🔔 Verificando manutenções próximas...');
+            verificarManutencoesProximas().catch(err => console.error('Erro na notificação:', err));
+        });
+
+
     } catch (error) {
         // TRATAMENTO DE ERROS CRÍTICOS
         // ============================================================
@@ -100,15 +112,15 @@ async function iniciarServidor() {
 process.on('SIGINT', async () => {
     // \n adiciona uma linha em branco para não sobrepor a mensagem com ^C
     console.log('\n🔴 Encerrando servidor...');
-    
+
     // Importa dinamicamente a função de desconexão
     // Por quê dinâmico? Para garantir que usamos a instância mais recente
     const { desconectarBanco } = await import('./config/database.js');
-    
+
     // Desconecta do MongoDB de forma assíncrona
     // Aguarda a desconexão completa antes de encerrar
     await desconectarBanco();
-    
+
     // Encerra o processo com código 0 (indica encerramento bem-sucedido)
     process.exit(0);
 });
