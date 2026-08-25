@@ -243,4 +243,60 @@ router.patch('/km', requireAuth, async (req, res) => {
     }
 });
 
+// ============================================================
+// GET /api/vehicles/:id/maintenance/:manutencaoId/nota-fiscal
+// PROPÓSITO: Baixa a nota fiscal de uma manutenção
+// ============================================================
+router.get('/:manutencaoId/nota-fiscal', requireAuth, async (req, res) => {
+    try {
+        // Busca o veículo
+        let veiculo;
+        if (req.user.role === 'ADMIN') {
+            veiculo = await Veiculo.buscarPorIdAdmin(req.params.id);
+        } else if (req.user.role === 'MECANICA') {
+            const temAcesso = await verificarAcessoManutencao(req.user._id, req.params.id);
+            if (!temAcesso) {
+                return res.status(403).json({ success: false, message: 'Acesso negado.' });
+            }
+            veiculo = await Veiculo.buscarPorIdAdmin(req.params.id);
+        } else {
+            veiculo = await Veiculo.buscarPorIdEProprietario(req.params.id, req.user._id);
+        }
+
+        if (!veiculo) {
+            return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
+        }
+
+        // Procura a manutenção
+        const manutencao = (veiculo.manutencoes || []).find(m => m.id === req.params.manutencaoId);
+        if (!manutencao || !manutencao.notaFiscal) {
+            return res.status(404).json({ success: false, message: 'Nota fiscal não encontrada.' });
+        }
+
+        // Separa o tipo MIME do Base64
+        // Ex: "data:application/pdf;base64,JVBERi0x..."
+        const partes = manutencao.notaFiscal.match(/^data:([^;]+);base64,(.*)$/);
+        if (!partes) {
+            return res.status(400).json({ success: false, message: 'Formato de nota fiscal inválido.' });
+        }
+
+        const mimeType = partes[1];
+        const base64 = partes[2];
+        const buffer = Buffer.from(base64, 'base64');
+
+        // Nome do arquivo
+        const nome = manutencao.notaFiscalNome || 'nota-fiscal';
+        const ext = mimeType === 'application/pdf' ? 'pdf' : 'jpg';
+        const filename = `${nome}.${ext}`;
+
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+        res.send(buffer);
+    } catch (error) {
+        console.error('Erro ao baixar nota fiscal:', error);
+        res.status(500).json({ success: false, message: 'Erro ao baixar nota fiscal.' });
+    }
+});
+
+
 export default router;
