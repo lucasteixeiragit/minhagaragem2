@@ -208,11 +208,17 @@ router.post('/forgot-password', limitadorLogin, async (req, res) => { // rota PO
         const link = `https://minhagaragem.duckdns.org/resetPass.html?token=${token}`;
 
         //Envia o email
-        await enviarEmail({
-            para: usuario.email,
-            assunto: 'Redefinição de senha - Minha Garagem',
-            texto: `Olá ${usuario.nome}, recebemos um pedido de redefinição de senha. Acesse o link abaixo para definir uma nova senha (válido por 1 hora):\n\n${link}\n\nSe você não solicitou, ignore este email.`
-        });
+        try {
+            const infoEmail = await enviarEmail({
+                para: usuario.email,
+                assunto: 'Redefinição de senha - Minha Garagem',
+                texto: `Olá ${usuario.nome}, recebemos um pedido de redefinição de senha. Acesse o link abaixo para definir uma nova senha (válido por 1 hora):\n\n${link}\n\nSe você não solicitou, ignore este email.`
+            });
+            console.log('Email enviado com sucesso:', infoEmail.messageId);
+        } catch (emailError) {
+            console.error('Erro ao enviar email:', emailError.message);
+            // Continua mesmo se o email falhar (não quebra o fluxo)
+        }
 
         //Auditoria
         await registrarAuditoria({
