@@ -23,7 +23,6 @@
 // $set → define/atualiza um campo. Se o campo não existe, cria.
 // $unset → remove um campo do documento.
 
-import { get } from 'browser-sync';
 import { getBanco } from '../config/database.js';
 import { ObjectId } from 'mongodb';
 
