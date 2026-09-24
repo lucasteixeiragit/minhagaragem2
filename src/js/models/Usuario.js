@@ -17,6 +17,13 @@
 // NUNCA armazenar senha em texto puro.
 // ============================================================
 
+// OPERACOES NO BANCO: findOne - InsertOne - updateOne - deleteOne
+
+// São operadores do MongoDB para atualização:
+// $set → define/atualiza um campo. Se o campo não existe, cria.
+// $unset → remove um campo do documento.
+
+import { get } from 'browser-sync';
 import { getBanco } from '../config/database.js';
 import { ObjectId } from 'mongodb';
 
@@ -102,6 +109,43 @@ class Usuario {
         return await db.collection(COLECAO).updateOne(
             { _id: new ObjectId(id) },
             { $set: { lastLoginAt: new Date() } }
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: salvarTokenRedefinicao(id, token, expireEm)
+    // PROPÓSITO: Armazena o token de redefinição de senha
+    // ========================================================
+    static async salvarTokenRedefinicao(id, token, expiraEm) { //recebe 3 coisas: o ID do usuário, o token gerado, e a data/hora em que ele expira.
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne( //"encontre o usuário com esse ID". O new ObjectId(id) é necessário porque no MongoDB o _id não é uma string comum — é um tipo especial chamado ObjectId. Por isso todos os métodos do arquivo fazem essa conversão.
+            {_id: new ObjectId(id)}, 
+            {$set: {resetToken: token, resetTokenExpira: expiraEm, updatedAt: new Date()}} //  "grave esses 3 campos". O updatedAt é atualizado em todo método, seguindo o padrão do arquivo.
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: buscarPorTokenRedefinicao(token)
+    // PROPÓSITO: Busca usuário por token de redefinição válido
+    // ========================================================
+    static async buscarPorTokenRedefinicao(token) {
+        const db = getBanco();
+        return await db.collection(COLECAO).findOne({ //"encontre o usuário cujo resetToken seja igual a este token".
+            resetToken: token,
+            resetTokenExpira: {$gt: new Date() } //$gt significa "maior que" (greater than). Ou seja: "o campo resetTokenExpira deve ser maior que agora". Se o token expirou, a data de validade é menor que agora, e o findOne não encontra ninguém → retorna null.
+            }
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: limparTokenRedefinicao(id)
+    // PROPÓSITO: Remove o token após a redefinição ser concluída
+    // ========================================================
+    static async limparTokenRedefinicao(id) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            {_id: new ObjectId(id)},
+            {$unset: {resetToken: '', resetTokenExpira: ''}, $set: {updatedAt: new Date()}} //remove os dois campos do documento. O valor '' é ignorado — o $unset só se importa com o nome do campo. / $set: { updatedAt: new Date() } → mantém o padrão de atualizar o timestamp.
         );
     }
 
