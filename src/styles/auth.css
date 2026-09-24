@@ -84,7 +84,7 @@ body {
 */
 
 /* ===================== AUTH CONTAINER ====================== */
-.auth-container {
+.auth__container {
     flex: 1;
     display: flex;
     align-items: center;
@@ -92,7 +92,7 @@ body {
     padding: 40px 20px;
 }
 
-.auth-card {
+.auth__card {
     background-color: oklch(0.16 0.008 280);
     border: 1px solid oklch(0.26 0.012 265);
     border-radius: 16px;
@@ -102,7 +102,7 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-.auth-card h1 {
+.auth__card h1 {
     font-family: "Bebas Neue", sans-serif;
     font-size: 2.2rem;
     color: oklch(0.62 0.22 25);
@@ -110,17 +110,17 @@ body {
     letter-spacing: 1px;
 }
 
-.auth-card .subtitle {
+.auth__card .auth__subtitle {
     color: oklch(0.7 0.01 280);
     font-size: 0.9rem;
     margin-bottom: 28px;
 }
 
-.form-group {
+.form__group {
     margin-bottom: 20px;
 }
 
-.form-group label {
+.form__group label {
     display: block;
     font-size: 0.85rem;
     color: oklch(0.75 0.01 280);
@@ -128,8 +128,8 @@ body {
     font-weight: 500;
 }
 
-.form-group input,
-.form-group select {
+.form__group input,
+.form__group select {
     width: 100%;
     padding: 12px 14px;
     background-color: oklch(0.2 0.01 280);
@@ -141,17 +141,17 @@ body {
     transition: border-color 0.2s;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.form__group input:focus,
+.form__group select:focus {
     outline: none;
     border-color: oklch(0.62 0.22 25);
 }
 
-.form-group input::placeholder {
+.form__group input::placeholder {
     color: oklch(0.5 0.01 280);
 }
 
-.btn-primary {
+.btn__primary {
     width: 100%;
     padding: 14px;
     background-color: oklch(0.62 0.22 25);
@@ -166,36 +166,49 @@ body {
     margin-top: 8px;
 }
 
-.btn-primary:hover {
+.btn__primary:hover {
     background-color: oklch(0.55 0.2 25);
     transform: translateY(-1px);
 }
 
-.btn-primary:disabled {
+.btn__primary:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
 }
 
-.auth-links {
+.auth__links {
     margin-top: 20px;
     text-align: center;
     font-size: 0.9rem;
     color: oklch(0.7 0.01 280);
 }
 
-.auth-links a {
+.auth__links a {
     color: oklch(0.62 0.22 25);
     text-decoration: none;
     font-weight: 600;
 }
 
-.auth-links a:hover {
+.auth__links a:hover {
     text-decoration: underline;
 }
 
+.auth__password {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: oklch(0.7 0.01 280);
+}
+
+.auth__password a {
+    color: oklch(0.62 0.22 25);
+    text-decoration: none;
+    font-weight: 600;
+}
+
 /* ===================== ALERTAS ====================== */
-.alert {
+.alert__box {
     padding: 12px 16px;
     border-radius: 8px;
     margin-bottom: 20px;
@@ -203,24 +216,24 @@ body {
     display: none;
 }
 
-.alert.show {
+.alert__box--show {
     display: block;
 }
 
-.alert-error {
+.alert__error {
     background-color: oklch(0.4 0.2 25 / 15%);
     border: 1px solid oklch(0.55 0.2 25 / 40%);
     color: oklch(0.75 0.15 25);
 }
 
-.alert-success {
+.alert__success {
     background-color: oklch(0.5 0.15 150 / 15%);
     border: 1px solid oklch(0.55 0.15 150 / 40%);
     color: oklch(0.75 0.12 150);
 }
 
 /* ===================== PROFILE ====================== */
-.profile-container {
+.profile__container {
     flex: 1;
     padding: 40px 10%;
     max-width: 900px;
@@ -228,7 +241,7 @@ body {
     width: 100%;
 }
 
-.profile-card {
+.profile__card {
     background-color: oklch(0.16 0.008 280);
     border: 1px solid oklch(0.26 0.012 265);
     border-radius: 16px;
@@ -236,7 +249,7 @@ body {
     margin-bottom: 24px;
 }
 
-.profile-card h2 {
+.profile__card h2 {
     font-family: "Bebas Neue", sans-serif;
     font-size: 1.8rem;
     color: oklch(0.62 0.22 25);
@@ -244,21 +257,21 @@ body {
     letter-spacing: 1px;
 }
 
-.profile-info {
+.profile__info {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-bottom: 24px;
 }
 
-.profile-info .info-item {
+.profile__info .info__item {
     background-color: oklch(0.2 0.01 280);
     border: 1px solid oklch(0.3 0.01 280);
     border-radius: 8px;
     padding: 16px;
 }
 
-.profile-info .info-item .label {
+.profile__info .info__item .info__label {
     font-size: 0.75rem;
     color: oklch(0.6 0.01 280);
     text-transform: uppercase;
@@ -266,14 +279,14 @@ body {
     margin-bottom: 4px;
 }
 
-.profile-info .info-item .value {
+.profile__info .info__item .info__value {
     font-size: 1.05rem;
     font-weight: 600;
 }
 
 /* ========================== TIPO DE CONTA ======================== */
 
-.role-badge {
+.role__badge {
     display: inline-block;
     padding: 4px 12px;
     border-radius: 20px;
@@ -283,13 +296,13 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* .role-badge.USER {
+/* .role__badge.USER {
     background-color: oklch(0.5 0.15 250 / 20%);
     color: oklch(0.75 0.12 250);
     border: 1px solid oklch(0.55 0.15 250 / 40%);
 } */
 
-.role-badge.USER {
+.role__badge.USER {
     /* Fundo escuro de placa */
     background-color: #202020;
     color: #ffffff;
@@ -304,7 +317,7 @@ body {
     box-shadow: inset 0 0 0 2px #2a2a2a;
 }
 
-.role-badge.USER::before {
+.role__badge.USER::before {
     content: "";
     position: absolute;
     top: 3px;
@@ -315,7 +328,7 @@ body {
     border-radius: 2px;
 }
 
-.role-badge.MECANICA {
+.role__badge.MECANICA {
     background-color: #202020;
     color: #ffffff;
     border: 2px solid #e63946;
@@ -329,7 +342,7 @@ body {
     box-shadow: inset 0 0 0 2px #2a2a2a;
 }
 
-.role-badge.MECANICA::before {
+.role__badge.MECANICA::before {
     content: "";
     position: absolute;
     top: 3px;
@@ -340,7 +353,7 @@ body {
     border-radius: 2px;
 }
 
-.role-badge.ADMIN {
+.role__badge.ADMIN {
     background-color: #202020;
     color: #ffffff;
     border: 2px solid #e63946;
@@ -354,7 +367,7 @@ body {
     box-shadow: inset 0 0 0 2px #2a2a2a;
 }
 
-.role-badge.ADMIN::before {
+.role__badge.ADMIN::before {
     content: "";
     position: absolute;
     top: 3px;
@@ -366,7 +379,7 @@ body {
 }
 
 /* ===================== ADMIN ====================== */
-.admin-container {
+.admin__container {
     flex: 1;
     padding: 40px 10%;
     max-width: 1200px;
@@ -374,14 +387,14 @@ body {
     width: 100%;
 }
 
-.admin-tabs {
+.admin__tabs {
     display: flex;
     gap: 8px;
     margin-bottom: 24px;
     flex-wrap: wrap;
 }
 
-.admin-tab {
+.admin__tab {
     padding: 10px 20px;
     background-color: oklch(0.2 0.01 280);
     border: 1px solid oklch(0.3 0.01 280);
@@ -393,26 +406,26 @@ body {
     transition: all 0.2s;
 }
 
-.admin-tab:hover {
+.admin__tab:hover {
     border-color: oklch(0.62 0.22 25);
     color: #fff;
 }
 
-.admin-tab.active {
+.admin__tab--active {
     background-color: oklch(0.62 0.22 25);
     color: #fff;
     border-color: oklch(0.62 0.22 25);
 }
 
-.admin-panel {
+.admin__panel {
     display: none;
 }
 
-.admin-panel.active {
+.admin__panel--active {
     display: block;
 }
 
-.admin-table {
+.admin__table {
     width: 100%;
     border-collapse: collapse;
     background-color: oklch(0.16 0.008 280);
@@ -421,7 +434,7 @@ body {
     overflow: hidden;
 }
 
-.admin-table th {
+.admin__table th {
     background-color: oklch(0.2 0.01 280);
     padding: 14px 16px;
     text-align: left;
@@ -432,21 +445,21 @@ body {
     border-bottom: 1px solid oklch(0.3 0.01 280);
 }
 
-.admin-table td {
+.admin__table td {
     padding: 14px 16px;
     border-bottom: 1px solid oklch(0.24 0.01 280);
     font-size: 0.9rem;
 }
 
-.admin-table tr:last-child td {
+.admin__table tr:last-child td {
     border-bottom: none;
 }
 
-.admin-table tr:hover td {
+.admin__table tr:hover td {
     background-color: oklch(0.19 0.01 280);
 }
 
-.btn-small {
+.btn__small {
     padding: 6px 12px;
     border-radius: 6px;
     border: 1px solid oklch(0.3 0.01 280);
@@ -459,30 +472,30 @@ body {
     margin-right: 4px;
 }
 
-.btn-small:hover {
+.btn__small:hover {
     border-color: oklch(0.62 0.22 25);
 }
 
-.btn-small.danger {
+.btn__small--danger {
     border-color: oklch(0.55 0.2 25 / 40%);
     color: oklch(0.75 0.15 25);
 }
 
-.btn-small.danger:hover {
+.btn__small--danger:hover {
     background-color: oklch(0.55 0.2 25 / 15%);
 }
 
-.btn-small.success {
+.btn__small--success {
     border-color: oklch(0.55 0.15 150 / 40%);
     color: oklch(0.75 0.12 150);
 }
 
-.btn-small.success:hover {
+.btn__small--success:hover {
     background-color: oklch(0.55 0.15 150 / 15%);
 }
 
 /* ===================== MECANICA ====================== */
-.mechanic-container {
+.mechanic__container {
     flex: 1;
     padding: 40px 10%;
     max-width: 1000px;
@@ -490,7 +503,7 @@ body {
     width: 100%;
 }
 
-.vehicle-card {
+.vehicle__card {
     background-color: oklch(0.16 0.008 280);
     border: 1px solid oklch(0.26 0.012 265);
     border-radius: 12px;
@@ -502,26 +515,26 @@ body {
     transition: border-color 0.2s;
 }
 
-.vehicle-card:hover {
+.vehicle__card:hover {
     border-color: oklch(0.62 0.22 25 / 50%);
 }
 
-.vehicle-card .vehicle-info h3 {
+.vehicle__card .vehicle__info h3 {
     font-size: 1.1rem;
     margin-bottom: 4px;
 }
 
-.vehicle-card .vehicle-info p {
+.vehicle__card .vehicle__info p {
     color: oklch(0.6 0.01 280);
     font-size: 0.85rem;
 }
 
 /* ===================== VÍNCULOS (Cliente ↔ Mecânica) ====================== */
-.vinculos-section {
+.vinculos__section {
     margin-bottom: 32px;
 }
 
-.vinculos-section h2 {
+.vinculos__section h2 {
     font-family: "Bebas Neue", sans-serif;
     font-size: 1.6rem;
     color: oklch(0.62 0.22 25);
@@ -529,15 +542,15 @@ body {
     letter-spacing: 1px;
 }
 
-.busca-form {
+.busca__form {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
     flex-wrap: wrap;
 }
 
-.busca-form input,
-.busca-form select {
+.busca__form input,
+.busca__form select {
     flex: 1;
     min-width: 220px;
     padding: 12px 14px;
@@ -549,13 +562,13 @@ body {
     font-family: "Inter", sans-serif;
 }
 
-.busca-form input:focus,
-.busca-form select:focus {
+.busca__form input:focus,
+.busca__form select:focus {
     outline: none;
     border-color: oklch(0.62 0.22 25);
 }
 
-.busca-form button {
+.busca__form button {
     padding: 12px 22px;
     background-color: oklch(0.62 0.22 25);
     color: #fff;
@@ -568,16 +581,16 @@ body {
     white-space: nowrap;
 }
 
-.busca-form button:hover {
+.busca__form button:hover {
     background-color: oklch(0.55 0.2 25);
 }
 
-.busca-form button:disabled {
+.busca__form button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
-.vinculo-card {
+.vinculo__card {
     background-color: oklch(0.16 0.008 280);
     border: 1px solid oklch(0.26 0.012 265);
     border-radius: 12px;
@@ -591,34 +604,34 @@ body {
     transition: border-color 0.2s;
 }
 
-.vinculo-card:hover {
+.vinculo__card:hover {
     border-color: oklch(0.62 0.22 25 / 50%);
 }
 
-.vinculo-card .vinculo-info h3 {
+.vinculo__card .vinculo__info h3 {
     font-size: 1.05rem;
     margin-bottom: 4px;
 }
 
-.vinculo-card .vinculo-info p {
+.vinculo__card .vinculo__info p {
     color: oklch(0.6 0.01 280);
     font-size: 0.85rem;
 }
 
-.vinculo-card .vinculo-actions {
+.vinculo__card .vinculo__actions {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
 }
 
-.vinculo-vazio {
+.vinculo__vazio {
     color: oklch(0.6 0.01 280);
     text-align: center;
     padding: 30px;
     font-size: 0.9rem;
 }
 
-.status-badge {
+.status__badge {
     display: inline-block;
     padding: 4px 12px;
     border-radius: 20px;
@@ -628,26 +641,26 @@ body {
     letter-spacing: 0.5px;
 }
 
-.status-badge.PENDENTE {
+.status__badge.PENDENTE {
     background-color: oklch(0.55 0.15 80 / 20%);
     color: oklch(0.78 0.13 80);
     border: 1px solid oklch(0.55 0.15 80 / 40%);
 }
 
-.status-badge.ATIVO {
+.status__badge.ATIVO {
     background-color: oklch(0.5 0.15 150 / 20%);
     color: oklch(0.75 0.12 150);
     border: 1px solid oklch(0.55 0.15 150 / 40%);
 }
 
-.status-badge.RECUSADO,
-.status-badge.BLOQUEADO {
+.status__badge.RECUSADO,
+.status__badge.BLOQUEADO {
     background-color: oklch(0.4 0.2 25 / 15%);
     border: 1px solid oklch(0.55 0.2 25 / 40%);
     color: oklch(0.75 0.15 25);
 }
 
-.status-badge.INATIVO {
+.status__badge.INATIVO {
     background-color: oklch(0.3 0.01 280 / 40%);
     border: 1px solid oklch(0.4 0.01 280);
     color: oklch(0.65 0.01 280);
@@ -663,17 +676,17 @@ body {
     }
     */
 
-    .profile-info {
+    .profile__info {
         grid-template-columns: 1fr;
     }
 
-    .admin-container,
-    .profile-container,
-    .mechanic-container {
+    .admin__container,
+    .profile__container,
+    .mechanic__container {
         padding: 20px 5%;
     }
 
-    .auth-card {
+    .auth__card {
         padding: 24px;
     }
 }

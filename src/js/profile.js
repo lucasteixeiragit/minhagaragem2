@@ -3,8 +3,8 @@ const alertEl = document.getElementById('alert');
 
 function mostrarAlerta(mensagem, tipo = 'error') {
     alertEl.textContent = mensagem;
-    alertEl.className = `alert alert-${tipo} show`;
-    setTimeout(() => { alertEl.className = 'alert'; }, 4000);
+    alertEl.className = `alert__box alert__${tipo} alert__box--show`;
+    setTimeout(() => { alertEl.className = 'alert__box'; }, 4000);
 }
 
 function formatarData(iso) {
@@ -27,7 +27,7 @@ function formatarData(iso) {
         document.getElementById('nomeUsuario').textContent = usuario.nome;
         document.getElementById('emailUsuario').textContent = usuario.email;
         document.getElementById('roleUsuario').textContent = usuario.role;
-        document.getElementById('roleUsuario').className = `role-badge ${usuario.role}`;
+        document.getElementById('roleUsuario').className = `role__badge ${usuario.role}`;
         document.getElementById('criadoEm').textContent = formatarData(usuario.createdAt);
         document.getElementById('novoNome').value = usuario.nome;
 

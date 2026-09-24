@@ -24,7 +24,7 @@ const btnLogin = document.getElementById('btnLogin');
 
 function mostrarAlerta(mensagem, tipo = 'error') {
     alertEl.textContent = mensagem;
-    alertEl.className = `alert alert-${tipo} show`;
+    alertEl.className = `alert__box alert__${tipo} alert__box--show`;
 }
 
 form.addEventListener('submit', async (event) => {

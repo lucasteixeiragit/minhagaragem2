@@ -22,34 +22,34 @@
         </div>
     </header>
 
-    <main class="admin-container">
-        <div id="alert" class="alert alert-error"></div>
+    <main class="admin__container">
+        <div id="alert" class="alert__box alert__error"></div>
 
-        <div class="admin-tabs">
-            <button class="admin-tab active" data-tab="users">Usuários</button>
-            <button class="admin-tab" data-tab="vehicles">Veículos</button>
-            <button class="admin-tab" data-tab="appointments">Atendimentos</button>
-            <button class="admin-tab" data-tab="logs">Auditoria</button>
+        <div class="admin__tabs">
+            <button class="admin__tab admin__tab--active" data-tab="users">Usuários</button>
+            <button class="admin__tab" data-tab="vehicles">Veículos</button>
+            <button class="admin__tab" data-tab="appointments">Atendimentos</button>
+            <button class="admin__tab" data-tab="logs">Auditoria</button>
         </div>
 
         <!-- ==================== USUÁRIOS ==================== -->
-        <div class="admin-panel active" id="panel-users">
-            <div class="profile-card" style="margin-bottom: 20px;">
+        <div class="admin__panel admin__panel--active" id="panel-users">
+            <div class="profile__card" style="margin-bottom: 20px;">
                 <h2>Criar Usuário</h2>
                 <form id="formCriarUsuario" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 12px; align-items: end;">
-                    <div class="form-group" style="margin: 0;">
+                    <div class="form__group" style="margin: 0;">
                         <label>Nome</label>
                         <input type="text" id="novoNome" required minlength="2">
                     </div>
-                    <div class="form-group" style="margin: 0;">
+                    <div class="form__group" style="margin: 0;">
                         <label>E-mail</label>
                         <input type="email" id="novoEmail" required>
                     </div>
-                    <div class="form-group" style="margin: 0;">
+                    <div class="form__group" style="margin: 0;">
                         <label>Senha</label>
                         <input type="password" id="novaSenha" required minlength="8">
                     </div>
-                    <div class="form-group" style="margin: 0;">
+                    <div class="form__group" style="margin: 0;">
                         <label>Role</label>
                         <select id="novaRole">
                             <option value="USER">USER</option>
@@ -57,11 +57,11 @@
                             <option value="ADMIN">ADMIN</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn-primary" style="margin: 0; width: auto; padding: 12px 20px;">Criar</button>
+                    <button type="submit" class="btn__primary" style="margin: 0; width: auto; padding: 12px 20px;">Criar</button>
                 </form>
             </div>
 
-            <table class="admin-table">
+            <table class="admin__table">
                 <thead>
                     <tr>
                         <th>Nome</th>
@@ -76,8 +76,8 @@
         </div>
 
         <!-- ==================== VEÍCULOS ==================== -->
-        <div class="admin-panel" id="panel-vehicles">
-            <table class="admin-table">
+        <div class="admin__panel" id="panel-vehicles">
+            <table class="admin__table">
                 <thead>
                     <tr>
                         <th>Apelido</th>
@@ -92,23 +92,23 @@
         </div>
 
         <!-- ==================== ATENDIMENTOS ==================== -->
-        <div class="admin-panel" id="panel-appointments">
-            <div class="profile-card" style="margin-bottom: 20px;">
+        <div class="admin__panel" id="panel-appointments">
+            <div class="profile__card" style="margin-bottom: 20px;">
                 <h2>Novo Atendimento</h2>
                 <form id="formAtendimento" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;">
-                    <div class="form-group" style="margin: 0;">
+                    <div class="form__group" style="margin: 0;">
                         <label>Mecânica</label>
                         <select id="selectMecanica"></select>
                     </div>
-                    <div class="form-group" style="margin: 0;">
+                    <div class="form__group" style="margin: 0;">
                         <label>Veículo</label>
                         <select id="selectVeiculo"></select>
                     </div>
-                    <button type="submit" class="btn-primary" style="margin: 0; width: auto; padding: 12px 20px;">Vincular</button>
+                    <button type="submit" class="btn__primary" style="margin: 0; width: auto; padding: 12px 20px;">Vincular</button>
                 </form>
             </div>
 
-            <table class="admin-table">
+            <table class="admin__table">
                 <thead>
                     <tr>
                         <th>Mecânica</th>
@@ -122,8 +122,8 @@
         </div>
 
         <!-- ==================== AUDITORIA ==================== -->
-        <div class="admin-panel" id="panel-logs">
-            <table class="admin-table">
+        <div class="admin__panel" id="panel-logs">
+            <table class="admin__table">
                 <thead>
                     <tr>
                         <th>Data</th>
@@ -146,8 +146,8 @@
 
         function mostrarAlerta(mensagem, tipo = 'error') {
             alertEl.textContent = mensagem;
-            alertEl.className = `alert alert-${tipo} show`;
-            setTimeout(() => { alertEl.className = 'alert'; }, 4000);
+            alertEl.className = `alert__box alert__${tipo} alert__box--show`;
+            setTimeout(() => { alertEl.className = 'alert__box'; }, 4000);
         }
 
         function formatarData(iso) {
@@ -187,12 +187,12 @@
         });
 
         // Tabs
-        document.querySelectorAll('.admin-tab').forEach(tab => {
+        document.querySelectorAll('.admin__tab').forEach(tab => {
             tab.addEventListener('click', () => {
-                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
-                tab.classList.add('active');
-                document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+                document.querySelectorAll('.admin__tab').forEach(t => t.classList.remove('admin__tab--active'));
+                document.querySelectorAll('.admin__panel').forEach(p => p.classList.remove('admin__panel--active'));
+                tab.classList.add('admin__tab--active');
+                document.getElementById('panel-' + tab.dataset.tab).classList.add('admin__panel--active');
             });
         });
 
@@ -210,18 +210,18 @@
                     tr.innerHTML = `
                         <td>${u.nome}</td>
                         <td>${u.email}</td>
-                        <td><span class="role-badge ${u.role}">${u.role}</span></td>
+                        <td><span class="role__badge ${u.role}">${u.role}</span></td>
                         <td>${u.ativo ? '<span style="color: oklch(0.75 0.12 150);">Ativo</span>' : '<span style="color: oklch(0.75 0.15 25);">Bloqueado</span>'}</td>
                         <td>
-                            <select class="btn-small" onchange="alterarRole('${u._id}', this.value)">
+                            <select class="btn__small" onchange="alterarRole('${u._id}', this.value)">
                                 <option value="USER" ${u.role === 'USER' ? 'selected' : ''}>USER</option>
                                 <option value="MECANICA" ${u.role === 'MECANICA' ? 'selected' : ''}>MECANICA</option>
                                 <option value="ADMIN" ${u.role === 'ADMIN' ? 'selected' : ''}>ADMIN</option>
                             </select>
-                            <button class="btn-small ${u.ativo ? 'danger' : 'success'}" onclick="alterarStatus('${u._id}', ${!u.ativo})">
+                            <button class="btn__small ${u.ativo ? 'btn__small--danger' : 'btn__small--success'}" onclick="alterarStatus('${u._id}', ${!u.ativo})">
                                 ${u.ativo ? 'Bloquear' : 'Ativar'}
                             </button>
-                            <button class="btn-small danger" onclick="excluirUsuario('${u._id}')">Excluir</button>
+                            <button class="btn__small btn__small--danger" onclick="excluirUsuario('${u._id}')">Excluir</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -351,10 +351,10 @@
                     tr.innerHTML = `
                         <td>${a.mechanicId || '-'}</td>
                         <td>${a.vehicleId || '-'}</td>
-                        <td><span class="role-badge ${a.status === 'aberto' ? 'USER' : a.status === 'concluido' ? 'MECANICA' : 'ADMIN'}">${a.status}</span></td>
+                        <td><span class="role__badge ${a.status === 'aberto' ? 'USER' : a.status === 'concluido' ? 'MECANICA' : 'ADMIN'}">${a.status}</span></td>
                         <td>
-                            <button class="btn-small success" onclick="alterarStatusAtendimento('${a._id}', 'concluido')">Concluir</button>
-                            <button class="btn-small danger" onclick="alterarStatusAtendimento('${a._id}', 'cancelado')">Cancelar</button>
+                            <button class="btn__small btn__small--success" onclick="alterarStatusAtendimento('${a._id}', 'concluido')">Concluir</button>
+                            <button class="btn__small btn__small--danger" onclick="alterarStatusAtendimento('${a._id}', 'cancelado')">Cancelar</button>
                         </td>
                     `;
                     tbody.appendChild(tr);

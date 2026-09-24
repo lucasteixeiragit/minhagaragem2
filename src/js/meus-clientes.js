@@ -5,8 +5,8 @@ let clientesMap = {};
 
 function mostrarAlerta(mensagem, tipo = 'error') {
     alertEl.textContent = mensagem;
-    alertEl.className = `alert alert-${tipo} show`;
-    setTimeout(() => { alertEl.className = 'alert'; }, 4000);
+    alertEl.className = `alert__box alert__${tipo} alert__box--show`;
+    setTimeout(() => { alertEl.className = 'alert__box'; }, 4000);
 }
 
 function formatarData(iso) {
@@ -111,21 +111,21 @@ async function renderizarSolicitacoesRecebidas(lista) {
     const container = document.getElementById('listaSolicitacoesRecebidas');
     container.innerHTML = '';
     if (lista.length === 0) {
-        container.innerHTML = '<p class="vinculo-vazio">Nenhuma solicitação pendente.</p>';
+        container.innerHTML = '<p class="vinculo__vazio">Nenhuma solicitação pendente.</p>';
         return;
     }
     for (const vinculo of lista) {
         const cliente = await buscarDadosCliente(vinculo.usuarioId);
         const card = document.createElement('div');
-        card.className = 'vinculo-card';
+        card.className = 'vinculo__card';
         card.innerHTML = `
-            <div class="vinculo-info">
+            <div class="vinculo__info">
                 <h3>${cliente ? cliente.nome : 'Cliente'}</h3>
-                <p>${cliente ? cliente.email : ''} — solicitado em ${formatarData(vinculo.criadoEm)} <span class="status-badge ${vinculo.status}">${vinculo.status}</span></p>
+                <p>${cliente ? cliente.email : ''} — solicitado em ${formatarData(vinculo.criadoEm)} <span class="status__badge ${vinculo.status}">${vinculo.status}</span></p>
             </div>
-            <div class="vinculo-actions">
-                <button class="btn-small success" onclick="aceitarVinculo('${vinculo._id}')">Aceitar</button>
-                <button class="btn-small danger" onclick="recusarVinculo('${vinculo._id}')">Recusar</button>
+            <div class="vinculo__actions">
+                <button class="btn__small btn__small--success" onclick="aceitarVinculo('${vinculo._id}')">Aceitar</button>
+                <button class="btn__small btn__small--danger" onclick="recusarVinculo('${vinculo._id}')">Recusar</button>
             </div>`;
         container.appendChild(card);
     }
@@ -135,17 +135,17 @@ async function renderizarConvitesEnviados(lista) {
     const container = document.getElementById('listaConvitesEnviados');
     container.innerHTML = '';
     if (lista.length === 0) {
-        container.innerHTML = '<p class="vinculo-vazio">Nenhum convite pendente.</p>';
+        container.innerHTML = '<p class="vinculo__vazio">Nenhum convite pendente.</p>';
         return;
     }
     for (const vinculo of lista) {
         const cliente = await buscarDadosCliente(vinculo.usuarioId);
         const card = document.createElement('div');
-        card.className = 'vinculo-card';
+        card.className = 'vinculo__card';
         card.innerHTML = `
-            <div class="vinculo-info">
+            <div class="vinculo__info">
                 <h3>${cliente ? cliente.nome : 'Cliente'}</h3>
-                <p>${cliente ? cliente.email : ''} — convidado em ${formatarData(vinculo.criadoEm)} <span class="status-badge ${vinculo.status}">${vinculo.status}</span></p>
+                <p>${cliente ? cliente.email : ''} — convidado em ${formatarData(vinculo.criadoEm)} <span class="status__badge ${vinculo.status}">${vinculo.status}</span></p>
             </div>
             <p style="color: oklch(0.6 0.01 280); font-size: 0.85rem;">Aguardando o cliente aceitar o convite.</p>`;
         container.appendChild(card);
@@ -156,20 +156,20 @@ function renderizarClientesAtivos(lista) {
     const container = document.getElementById('listaClientesAtivos');
     container.innerHTML = '';
     if (lista.length === 0) {
-        container.innerHTML = '<p class="vinculo-vazio">Você ainda não tem clientes vinculados.</p>';
+        container.innerHTML = '<p class="vinculo__vazio">Você ainda não tem clientes vinculados.</p>';
         return;
     }
     lista.forEach((item) => {
         const card = document.createElement('div');
-        card.className = 'vinculo-card';
+        card.className = 'vinculo__card';
         const cliente = item.cliente || {};
         card.innerHTML = `
-            <div class="vinculo-info">
+            <div class="vinculo__info">
                 <h3>${cliente.nome || 'Cliente'}</h3>
-                <p>${cliente.email || ''} — vinculado desde ${formatarData(item.criadoEm)} <span class="status-badge ${item.status}">${item.status}</span></p>
+                <p>${cliente.email || ''} — vinculado desde ${formatarData(item.criadoEm)} <span class="status__badge ${item.status}">${item.status}</span></p>
             </div>
-            <div class="vinculo-actions">
-                <button class="btn-small danger" onclick="desativarVinculo('${item.vinculoId}')">Desvincular</button>
+            <div class="vinculo__actions">
+                <button class="btn__small btn__small--danger" onclick="desativarVinculo('${item.vinculoId}')">Desvincular</button>
             </div>`;
         container.appendChild(card);
     });

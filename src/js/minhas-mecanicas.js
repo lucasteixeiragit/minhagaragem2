@@ -5,8 +5,8 @@ let mecanicasMap = {};
 
 function mostrarAlerta(mensagem, tipo = 'error') {
     alertEl.textContent = mensagem;
-    alertEl.className = `alert alert-${tipo} show`;
-    setTimeout(() => { alertEl.className = 'alert'; }, 4000);
+    alertEl.className = `alert__box alert__${tipo} alert__box--show`;
+    setTimeout(() => { alertEl.className = 'alert__box'; }, 4000);
 }
 
 function formatarData(iso) {
@@ -115,20 +115,20 @@ function renderizarConvitesRecebidos(lista) {
     const container = document.getElementById('listaConvitesRecebidos');
     container.innerHTML = '';
     if (lista.length === 0) {
-        container.innerHTML = '<p class="vinculo-vazio">Nenhum convite pendente.</p>';
+        container.innerHTML = '<p class="vinculo__vazio">Nenhum convite pendente.</p>';
         return;
     }
     lista.forEach((vinculo) => {
         const card = document.createElement('div');
-        card.className = 'vinculo-card';
+        card.className = 'vinculo__card';
         card.innerHTML = `
-            <div class="vinculo-info">
+            <div class="vinculo__info">
                 <h3>${nomeMecanica(vinculo.mecanicaId)}</h3>
-                <p>Convite recebido em ${formatarData(vinculo.criadoEm)} <span class="status-badge ${vinculo.status}">${vinculo.status}</span></p>
+                <p>Convite recebido em ${formatarData(vinculo.criadoEm)} <span class="status__badge ${vinculo.status}">${vinculo.status}</span></p>
             </div>
-            <div class="vinculo-actions">
-                <button class="btn-small success" onclick="aceitarVinculo('${vinculo._id}')">Aceitar</button>
-                <button class="btn-small danger" onclick="recusarVinculo('${vinculo._id}')">Recusar</button>
+            <div class="vinculo__actions">
+                <button class="btn__small btn__small--success" onclick="aceitarVinculo('${vinculo._id}')">Aceitar</button>
+                <button class="btn__small btn__small--danger" onclick="recusarVinculo('${vinculo._id}')">Recusar</button>
             </div>`;
         container.appendChild(card);
     });
@@ -138,16 +138,16 @@ function renderizarSolicitacoesEnviadas(lista) {
     const container = document.getElementById('listaSolicitacoesEnviadas');
     container.innerHTML = '';
     if (lista.length === 0) {
-        container.innerHTML = '<p class="vinculo-vazio">Nenhuma solicitação pendente.</p>';
+        container.innerHTML = '<p class="vinculo__vazio">Nenhuma solicitação pendente.</p>';
         return;
     }
     lista.forEach((vinculo) => {
         const card = document.createElement('div');
-        card.className = 'vinculo-card';
+        card.className = 'vinculo__card';
         card.innerHTML = `
-            <div class="vinculo-info">
+            <div class="vinculo__info">
                 <h3>${nomeMecanica(vinculo.mecanicaId)}</h3>
-                <p>Enviada em ${formatarData(vinculo.criadoEm)} — aguardando aceite da mecânica <span class="status-badge ${vinculo.status}">${vinculo.status}</span></p>
+                <p>Enviada em ${formatarData(vinculo.criadoEm)} — aguardando aceite da mecânica <span class="status__badge ${vinculo.status}">${vinculo.status}</span></p>
             </div>`;
         container.appendChild(card);
     });
@@ -157,20 +157,20 @@ function renderizarMecanicasAtivas(lista) {
     const container = document.getElementById('listaMecanicasAtivas');
     container.innerHTML = '';
     if (lista.length === 0) {
-        container.innerHTML = '<p class="vinculo-vazio">Você ainda não tem mecânicas vinculadas.</p>';
+        container.innerHTML = '<p class="vinculo__vazio">Você ainda não tem mecânicas vinculadas.</p>';
         return;
     }
     lista.forEach((item) => {
         const card = document.createElement('div');
-        card.className = 'vinculo-card';
+        card.className = 'vinculo__card';
         const mecanica = item.mecanica || {};
         card.innerHTML = `
-            <div class="vinculo-info">
+            <div class="vinculo__info">
                 <h3>${mecanica.nome || 'Mecânica'}</h3>
-                <p>${mecanica.email || ''} — vinculado desde ${formatarData(item.criadoEm)} <span class="status-badge ${item.status}">${item.status}</span></p>
+                <p>${mecanica.email || ''} — vinculado desde ${formatarData(item.criadoEm)} <span class="status__badge ${item.status}">${item.status}</span></p>
             </div>
-            <div class="vinculo-actions">
-                <button class="btn-small danger" onclick="desativarVinculo('${item.vinculoId}')">Desvincular</button>
+            <div class="vinculo__actions">
+                <button class="btn__small btn__small--danger" onclick="desativarVinculo('${item.vinculoId}')">Desvincular</button>
             </div>`;
         container.appendChild(card);
     });

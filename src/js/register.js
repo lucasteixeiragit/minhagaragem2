@@ -5,7 +5,7 @@ const btnRegister = document.getElementById('btnRegister');
 
 function mostrarAlerta(mensagem, tipo = 'error') {
     alertEl.textContent = mensagem;
-    alertEl.className = `alert alert-${tipo} show`;
+    alertEl.className = `alert__box alert__${tipo} alert__box--show`;
 }
 
 function restaurarBotao() {
