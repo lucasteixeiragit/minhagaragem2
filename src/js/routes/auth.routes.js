@@ -18,6 +18,8 @@ import { registrarAuditoria } from '../utils/audit.js';
 import { requireAuth } from '../middleware/auth.js';
 import { validarCadastro, validarLogin, validarTrocaSenha } from '../middleware/validation.js';
 import { limitadorLogin, limitadorCadastro } from '../middleware/rateLimit.js';
+import crypto from 'crypto'; // rypto é um módulo embutido do Node (não precisa instalar nada). Ele fornece o randomBytes para gerar o token
+import {enviarEmail} from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -175,5 +177,102 @@ router.post('/change-password', requireAuth, validarTrocaSenha, async (req, res)
         res.status(500).json({ success: false, message: 'Erro ao alterar senha.' });
     }
 });
+
+// ============================================================
+// POST /api/auth/forgot-password
+// PROPÓSITO: Envia link de redefinição de senha por email
+// BODY: { email }
+// ============================================================
+router.post('/forgot-password', limitadorLogin, async (req, res) => { // rota POST com o limitador como porteiro. Não usa requireAuth porque o usuário está deslogado (esqueceu a senha).
+    try {
+        const {email} = req.body; //extrai o campo email do corpo da requisição. O { email } é desestruturação: pega a propriedade email do objeto req.body e cria uma variável com o mesmo nome.
+
+        //Busca o usuario por email
+        const usuario = await Usuario.buscarPorEmail(email);
+
+        //Resposta Genérica, nao revela se o email existe.
+        if (!usuario) {
+            return res.json({success: true, message: 'Se o e-mail estiver cadastrado, você receberá em breve um link de recuperação de senha.'});
+        } //se o email não existe, respondemos a MESMA mensagem de sucesso. O atacante não consegue descobrir se um email está cadastrado, porque a resposta é idêntica nos dois casos (existe ou não).
+
+        //Gera token aleatorio de 32 bytes (64 caracteres hex)
+        const token = crypto.randomBytes(32).toString('hex');
+
+        //Validade do token
+        const expiraEm = new Date(Date.now() + 60 * 60 * 1000);
+
+        //Salva token no usuario
+        await Usuario.salvarTokenRedefinicao(usuario._id, token, expiraEm);
+
+        // Monta link que vai no email
+        const link = `https://minhagaragem.duckdns.org/resetPass.html?token=${token}`;
+
+        //Envia o email
+        await enviarEmail({
+            para: usuario.email,
+            assunto: 'Redefinição de senha - Minha Garagem',
+            texto: `Olá ${usuario.nome}, recebemos um pedido de redefinição de senha. Acesse o link abaixo para definir uma nova senha (válido por 1 hora):\n\n${link}\n\nSe você não solicitou, ignore este email.`
+        });
+
+        //Auditoria
+        await registrarAuditoria({
+            userId: usuario._id,
+            action: 'FORGOT_PASSWORD',
+            resource: 'usuario',
+            resourceId: usuario._id,
+            ip: req.ip,
+            userAgent: req.get('user-agent')
+        });
+
+        res.json({success: true, message: 'Se o e-mail estiver cadastrado, você receberá em breve um link de recuperação de senha.'});
+    } catch (error) {
+        console.error('Erro no forgot-password:', error);
+        res.status(500).json({success: false, message: 'Erro ao processar solicitação.'});     
+    }
+});
+
+// ============================================================
+// POST /api/auth/reset-password
+// PROPÓSITO: Define nova senha usando o token do email
+// BODY: { token, novaSenha }
+// ============================================================
+router.post('/reset-password', limitadorLogin, async (req, res) => {
+    try{
+        const {token, novaSenha} = req.body; //extrai os 2 campos do body.
+
+        //busca usuario pelo token (e confere validade no banco)
+        const usuario = await Usuario.buscarPorTokenRedefinicao(token); //chama o método de POST /api/auth/forgot-password.  esse método já verifica a validade dentro do banco ($gt: new Date()). Se o token expirou, retorna null.
+
+        if(!usuario) {
+            return res.status(400).json({success: false, message: 'Link inválido ou expirado.'}); // token inválido ou expirado. Código 400 = "requisição ruim".
+        }
+
+        //valida tamanho minimo da senha
+        if(!novaSenha || novaSenha.length < 8){
+            return res.status(400).json({success: false, message: 'A senha deve ter no mínimo 8 caracteres.'});
+        }
+
+        //gera o hash da nova senha
+        const novoHash = await hashSenha(novaSenha);
+
+        //atualiza senha e limpa o token de uso unico
+        await Usuario.atualizarSenha(usuario._id, novoHash);
+        await Usuario.limparTokenRedefinicao(usuario._id);
+
+        await registrarAuditoria({
+            userId: usuario._id,
+            action: 'RESET_PASSWORD',
+            resource: 'usuario',
+            resourceId: usuario._id,
+            ip: req.ip,
+            userAgent: req.get('user-agent')  
+        });
+
+        res.json({success: true, message: 'Senha redefinida com sucesso.'});
+    } catch (error) {
+        console.error('Erro no reset-password:', error);
+        res.status(500).json({success: false, message: 'Erro ao redefinir senha.'});
+    }
+})
 
 export default router;
