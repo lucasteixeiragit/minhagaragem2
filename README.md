@@ -1,5 +1,8 @@
 # minhagaragem2
 
+Link para acessar sistema em produção:
+https://minhagaragem.duckdns.org/
+
 Como avançar no tempo para testar o calculo de KM
 Após o link, adicionar:
 &dataReferencia=10-08-2026
