@@ -56,6 +56,27 @@
                 <button type="submit" class="btn__primary" id="btnRegister">Criar conta</button>
             </form>
 
+            <form id="confirmForm" style="display:none;">
+                <!-- Preenchido pelo JS com o e-mail que recebeu o código -->
+                <p class="auth__subtitle" id="confirmInfo"></p>
+
+                <div class="form__group">
+                    <label for="codigo">Código de confirmação</label>
+                    <!-- inputmode=numeric abre teclado numérico no celular;
+                         autocomplete=one-time-code permite o preenchimento automático
+                         do código recebido por email; pattern valida 6 dígitos no cliente -->
+                    <input type="text" id="codigo" name="codigo" placeholder="000000" inputmode="numeric"
+                        maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" required>
+                </div>
+
+                <button type="submit" class="btn__primary" id="btnConfirmar">Confirmar cadastro</button>
+                <!-- type=button evita que estes botões disparem o submit do formulário -->
+                <button type="button" class="btn__primary" id="btnReenviar"
+                    style="background:transparent;border:1px solid oklch(0.3 0.01 280);">Reenviar código</button>
+                <button type="button" class="btn__primary" id="btnVoltarCadastro"
+                    style="background:transparent;border:1px solid oklch(0.3 0.01 280);">Voltar</button>
+            </form>
+
             <div class="auth__links">
                 Já tem uma conta? <a href="login.html">Entrar</a>
             </div>
