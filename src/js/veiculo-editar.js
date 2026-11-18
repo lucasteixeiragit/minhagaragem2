@@ -406,6 +406,30 @@ form.addEventListener('submit', async event => {
     }
 });
 
+document.getElementById('btnExcluir').addEventListener('click', async () => {
+    const confirmar = window.confirm(
+        `Tem certeza que deseja excluir "${veiculoAtual?.apelido || 'este veículo'}"? Essa ação é permanente.`
+    );
+
+    if (!confirmar) return;
+
+    try {
+        const resposta = await fetch(`/api/vehicles/${veiculoId}`, { method: 'DELETE' });
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            alert(dados.message || 'Erro ao excluir veículo.');
+            return;
+        }
+
+        alert('Veículo excluído com sucesso!');
+        window.location.href = './index.html';
+    } catch (erro) {
+        console.error('Erro ao excluir veículo.', erro);
+        alert('Erro de conexão ao excluir veículo.');
+    }
+});
+
 document.getElementById('btnVoltar').addEventListener('click', () => {
     window.location.href =
         `./veiculo-detalhes.html?id=${veiculoId}`;

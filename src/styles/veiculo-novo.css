@@ -292,10 +292,22 @@ input[type="date"].form__input__calendar::-webkit-calendar-picker-indicator {
 .form__actions {
     display: flex;
     justify-content: flex-end;
+    gap: 12px;
     margin-top: 8px;
 }
 
 .form__submit {
+    border: 2px solid oklch(0.26 0.012 265);
+    background: oklch(0.62 0.22 25);
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: oklch(0.96 0.01 140);
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+}
+
+.form__excluir {
     border: 2px solid oklch(0.26 0.012 265);
     background: oklch(0.62 0.22 25);
     padding: 10px 24px;
