@@ -59,7 +59,7 @@ class Usuario {
     // MÉTODO: criar({ nome, email, senhaHash, role })
     // PROPÓSITO: Cria um novo usuário
     // ========================================================
-    static async criar({ nome, email, senhaHash, role = 'USER' }) {
+    static async criar({ nome, email, senhaHash, role = 'USER', ativo = true}) {
         const db = getBanco();
         const agora = new Date();
         const resultado = await db.collection(COLECAO).insertOne({
@@ -67,7 +67,7 @@ class Usuario {
             email: email.toLowerCase().trim(),
             senhaHash,
             role,
-            ativo: true,
+            ativo,
             createdAt: agora,
             updatedAt: agora,
             lastLoginAt: null
@@ -149,6 +149,45 @@ class Usuario {
     }
 
     // ========================================================
+    // MÉTODO: salvarCodigoConfirmacao()
+    // PROPÓSITO: Salvar o codigo enviado por email na hora da criacao da conta
+    // ========================================================
+
+    static async salvarCodigoConfirmacao(id, codigoHash, expiraEm) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+        { _id: new ObjectId(id) },
+        { $set: {codigoConfirmacaoHash: codigoHash, codigoConfirmacaoExpira: expiraEm, codigoTentativas: 0, updatedAt: new Date()}} // $set atualiza um campo no mongodb, caso nao exista, cria.
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: limparCodigoConfirmacao(id)
+    // PROPÓSITO: Remove o codigo e o contador apos a confirmacao
+    // ========================================================
+
+    static async limparCodigoConfirmacao(id){
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            {_id: new ObjectId(id)},
+            { $unset: { codigoConfirmacaoHash: '', codigoConfirmacaoExpira: '', codigoTentativas: '' }, $set: { updatedAt: new Date() } } // remove o campo do documento. O valor '' é ignorado, só o nome importa.
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: incrementarTentativas(id)
+    // PROPÓSITO: Contador de tentativas
+    // ========================================================
+
+    static async incrementarTentativas(id) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(id) },
+            { $inc: { codigoTentativas: 1 } } //$inc — incrementa um número.
+        );
+    }
+
+    // ========================================================
     // MÉTODO: listarTodos()
     // PROPÓSITO: Lista todos os usuários (uso administrativo)
     // ========================================================
@@ -205,7 +244,7 @@ class Usuario {
     // ========================================================
     static sanitizar(usuario) {
         if (!usuario) return null;
-        const { senhaHash, ...dadosSeguros } = usuario;
+        const { senhaHash, codigoConfirmacaoHash, codigoConfirmacaoExpira, codigoTentativas, ...dadosSeguros } = usuario;
         return dadosSeguros;
     }
 }

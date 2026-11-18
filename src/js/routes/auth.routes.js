@@ -17,7 +17,7 @@ import { hashSenha, verificarSenha } from '../utils/password.js';
 import { registrarAuditoria } from '../utils/audit.js';
 import { requireAuth } from '../middleware/auth.js';
 import { validarCadastro, validarLogin, validarTrocaSenha } from '../middleware/validation.js';
-import { limitadorLogin, limitadorCadastro } from '../middleware/rateLimit.js';
+import { limitadorLogin, limitadorCadastro, limitadorConfirmacao, limitadorReenvio } from '../middleware/rateLimit.js';
 import crypto from 'crypto'; // rypto é um módulo embutido do Node (não precisa instalar nada). Ele fornece o randomBytes para gerar o token
 import {enviarEmail} from '../services/emailService.js';
 
@@ -34,6 +34,30 @@ router.post('/register', limitadorCadastro, validarCadastro, async (req, res) =>
 
         // Verifica se o e-mail já está em uso
         const existente = await Usuario.buscarPorEmail(email);
+
+        // Conta criada mas nunca confirmada: reenvia um código novo em vez de bloquear.
+        if (existente && !existente.ativo) {
+            const codigoPendente = crypto.randomInt(100000, 1000000).toString();
+            const hashPendente = await hashSenha(codigoPendente);
+            const expiraPendente = new Date(Date.now() + 15 * 60 * 1000);
+
+            await Usuario.salvarCodigoConfirmacao(existente._id, hashPendente, expiraPendente);
+
+            enviarEmail({
+                para: existente.email,
+                assunto: 'Confirme seu cadastro - Minha Garagem',
+                texto: `Olá ${existente.nome}, seu código de confirmação é ${codigoPendente}. Ele expira em 15 minutos.`
+            }).catch(emailError => {
+                console.error('Erro ao enviar código de confirmação:', emailError.message);
+            });
+
+            return res.status(200).json({
+                success: true,
+                pendente: true,
+                message: 'Este cadastro ainda não foi confirmado. Enviamos um novo código para o seu e-mail.'
+            });
+        }
+
         if (existente) {
             return res.status(409).json({ success: false, message: 'Este e-mail já está cadastrado.' });
         }
@@ -42,7 +66,24 @@ router.post('/register', limitadorCadastro, validarCadastro, async (req, res) =>
         const senhaHash = await hashSenha(senha);
 
         // Cria o usuário com role USER (nunca aceitar role vinda do body)
-        const resultado = await Usuario.criar({ nome, email, senhaHash, role: 'USER' });
+        const resultado = await Usuario.criar({ nome, email, senhaHash, role: 'USER', ativo: false });
+
+        // Enviar codigo de confirmacao
+        const codigo = crypto.randomInt(100000, 1000000).toString(); //gera inteiro aleatório criptograficamente seguro entre 100000 e 999999.
+        const codigoHash = await hashSenha(codigo);
+        const expiraEm = new Date(Date.now() + 15 * 60 * 1000);
+
+        await Usuario.salvarCodigoConfirmacao(resultado.insertedId, codigoHash, expiraEm);
+
+        // Envio em segundo plano: a resposta não espera o SMTP.
+        enviarEmail({
+            para: email,
+            assunto: 'Confirme seu cadastro - Minha Garagem',
+            texto: `Olá ${nome}, seu código de confirmação é ${codigo}. Ele expira em 15 minutos.`
+        }).catch(emailError => {
+            console.error('Erro ao enviar código de confirmação:', emailError.message);
+        });
+
 
         await registrarAuditoria({
             userId: resultado.insertedId,
@@ -57,6 +98,120 @@ router.post('/register', limitadorCadastro, validarCadastro, async (req, res) =>
     } catch (error) {
         console.error('Erro no cadastro:', error);
         res.status(500).json({ success: false, message: 'Erro ao criar conta.' });
+    }
+});
+
+// ============================================================
+// POST /api/auth/confirmar-cadastro
+// PROPÓSITO: Confirmar o código enviado por email e ativar a conta
+// BODY: { email, codigo }
+// ============================================================
+router.post('/confirmar-cadastro', limitadorConfirmacao, async (req, res) => {
+    try {
+        const { email, codigo } = req.body;
+
+        if (!email || !codigo || typeof codigo !== 'string') {
+            return res.status(400).json({ success: false, message: 'Informe o e-mail e o código.' });
+        }
+
+        const usuario = await Usuario.buscarPorEmail(email);
+
+        // Sem usuário ou sem código pendente: nada a confirmar.
+        if (!usuario || !usuario.codigoConfirmacaoHash) {
+            return res.status(400).json({ success: false, message: 'Código inválido ou expirado.' });
+        }
+
+        // Código vencido: o prazo é de 15 minutos a partir da geração.
+        if (usuario.codigoConfirmacaoExpira < new Date()) {
+            return res.status(400).json({ success: false, message: 'Código inválido ou expirado.' });
+        }
+
+        // Trava de força bruta: 6 dígitos dariam 1 milhão de combinações,
+        // então limitamos a 5 erros por código antes de exigir um novo.
+        if ((usuario.codigoTentativas || 0) >= 5) {
+            return res.status(429).json({ success: false, message: 'Muitas tentativas. Solicite um novo código.' });
+        }
+
+        // Compara o código digitado com o hash guardado (bcrypt, tempo constante).
+        const valido = await verificarSenha(codigo, usuario.codigoConfirmacaoHash);
+        if (!valido) {
+            await Usuario.incrementarTentativas(usuario._id);
+            return res.status(400).json({ success: false, message: 'Código inválido ou expirado.' });
+        }
+
+        // Ativa a conta e invalida o código para que não seja reutilizado.
+        await Usuario.atualizar(usuario._id, { ativo: true });
+        await Usuario.limparCodigoConfirmacao(usuario._id);
+
+        await registrarAuditoria({
+            userId: usuario._id,
+            action: 'CONFIRM_EMAIL',
+            resource: 'usuario',
+            resourceId: usuario._id,
+            ip: req.ip,
+            userAgent: req.get('user-agent')
+        });
+
+        res.json({ success: true, message: 'Cadastro confirmado. Você já pode entrar.' });
+    } catch (error) {
+        console.error('Erro ao confirmar cadastro:', error);
+        res.status(500).json({ success: false, message: 'Erro ao confirmar cadastro.' });
+    }
+});
+
+// ============================================================
+// POST /api/auth/reenviar-codigo
+// PROPÓSITO: Gera e envia um novo código de confirmação de cadastro
+// BODY: { email }
+// ============================================================
+router.post('/reenviar-codigo', limitadorReenvio, async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email || typeof email !== 'string') {
+            return res.status(400).json({ success: false, message: 'Informe o e-mail.' });
+        }
+
+        const usuario = await Usuario.buscarPorEmail(email);
+
+        // Resposta genérica: não revela se o e-mail existe ou já foi confirmado.
+        const respostaGenerica = {
+            success: true,
+            message: 'Se houver um cadastro pendente para este e-mail, enviamos um novo código.'
+        };
+
+        if (!usuario || usuario.ativo) {
+            return res.json(respostaGenerica);
+        }
+
+        const codigo = crypto.randomInt(100000, 1000000).toString();
+        const codigoHash = await hashSenha(codigo);
+        const expiraEm = new Date(Date.now() + 15 * 60 * 1000);
+
+        await Usuario.salvarCodigoConfirmacao(usuario._id, codigoHash, expiraEm);
+
+        // Envio em segundo plano: a resposta não espera o SMTP.
+        enviarEmail({
+            para: usuario.email,
+            assunto: 'Novo código de confirmação - Minha Garagem',
+            texto: `Olá ${usuario.nome}, seu novo código de confirmação é ${codigo}. Ele expira em 15 minutos.`
+        }).catch(emailError => {
+            console.error('Erro ao reenviar código de confirmação:', emailError.message);
+        });
+
+        await registrarAuditoria({
+            userId: usuario._id,
+            action: 'RESEND_CONFIRMATION_CODE',
+            resource: 'usuario',
+            resourceId: usuario._id,
+            ip: req.ip,
+            userAgent: req.get('user-agent')
+        });
+
+        res.json(respostaGenerica);
+    } catch (error) {
+        console.error('Erro ao reenviar código:', error);
+        res.status(500).json({ success: false, message: 'Erro ao reenviar código.' });
     }
 });
 
