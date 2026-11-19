@@ -75,10 +75,12 @@ async function iniciarServidor() {
 
 
         // callback para agendamento de envio de emails para notificacao
-        cron.schedule('0 8 * * *', () => {  // todos os dias às 08:00
+        // O timezone é explícito porque o servidor roda em UTC:
+        // sem ele, '0 8 * * *' dispararia às 05:00 de Brasília
+        cron.schedule('0 8 * * *', () => {  // todos os dias às 08:00 de Brasília
             console.log('🔔 Verificando manutenções próximas...');
             verificarManutencoesProximas().catch(err => console.error('Erro na notificação:', err));
-        });
+        }, { timezone: 'America/Sao_Paulo' });
 
 
     } catch (error) {

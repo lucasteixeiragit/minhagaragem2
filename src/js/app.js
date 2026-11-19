@@ -48,6 +48,7 @@ import vinculosRoutes from './routes/vinculos.routes.js';
 
 // Importa as rotas públicas de mecânicas (listagem para o cliente escolher)
 import mechanicsRoutes from './routes/mechanics.routes.js';
+import notificacaoRoutes from './routes/notificacao.routes.js';
 
 // Importa a configuração de sessão (cookie HttpOnly + store MongoDB)
 import { configurarSessao } from './config/session.js';
@@ -243,6 +244,15 @@ app.use('/api/vinculos', vinculosRoutes);
 //   - GET /api/mechanics/public → Lista mecânicas ativas (id/nome/email)
 // SEGURANÇA: Qualquer usuário autenticado; nunca retorna senhaHash
 app.use('/api/mechanics', mechanicsRoutes);
+
+// ROTA: /api/notificacoes
+// ============================================================
+// APONTA PARA: routes/notificacao.routes.js
+// ENDPOINTS DISPONÍVEIS:
+//   - GET   /api/notificacoes → Listar notificações pendentes do usuário
+//   - PATCH /api/notificacoes/:id → Concluir ou adiar notificação
+// SEGURANÇA: Autenticação obrigatória; só altera notificação do próprio usuário
+app.use('/api/notificacoes', notificacaoRoutes);
 
 // ============================================================
 // ROTA RAIZ (HOME DA API)
