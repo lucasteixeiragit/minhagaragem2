@@ -69,6 +69,36 @@ body {
     gap: 12px;
 }
 
+/* Linha de resumo dos alertas adiados, com botão para revelar */
+.alertas__adiados {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border: 1px dashed oklch(0.4 0.02 280);
+    border-radius: 8px;
+    font-family: "Inter", sans-serif;
+    font-size: 0.9rem;
+    color: oklch(0.75 0.02 280);
+}
+
+.alertas__adiados__btn {
+    background: transparent;
+    border: 1px solid oklch(0.4 0.02 280);
+    color: inherit;
+    font: inherit;
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.alertas__adiados__btn:hover {
+    border-color: oklch(0.62 0.22 25);
+    color: oklch(0.62 0.22 25);
+}
+
 .alerta__card {
     box-sizing: border-box;
     border-left: 4px solid;
@@ -139,6 +169,94 @@ body {
     height: 100%;
     border-radius: 3px;
     transition: width 0.3s ease;
+}
+
+/* Ações dos cards de alerta (Concluir / Adiar) */
+.alerta__acoes {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.alerta__btn {
+    padding: 6px 14px;
+    border-radius: 5px;
+    border: 1px solid oklch(0.3 0.01 280);
+    background: transparent;
+    color: oklch(0.9 0.01 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.alerta__btn:hover {
+    background: oklch(0.2 0.012 265);
+}
+
+.alerta__btn--concluir {
+    border-color: oklch(0.62 0.22 25);
+    color: oklch(0.62 0.22 25);
+}
+
+.alerta__btn--salvar,
+.alerta__btn--confirmar-adiar {
+    background: oklch(0.62 0.22 25);
+    border-color: oklch(0.62 0.22 25);
+    color: oklch(0.96 0.01 140);
+}
+
+.alerta__btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Formulário inline de conclusão da manutenção */
+.alerta__form,
+.alerta__adiar {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid oklch(0.25 0.012 265);
+}
+
+.alerta__form__titulo {
+    color: white;
+    font-family: "Inter", sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.alerta__form__campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.alerta__form__campo label,
+.alerta__adiar__label {
+    color: oklch(0.68 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.75rem;
+}
+
+.alerta__form__input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 5px;
+    border: 1px solid oklch(0.3 0.01 280);
+    background: oklch(0.12 0.01 265);
+    color: oklch(0.96 0.01 140);
+    font-family: "Inter", sans-serif;
+    font-size: 0.85rem;
+}
+
+.alerta__form__acoes {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
 }
 
 /* .manutencoes__section {

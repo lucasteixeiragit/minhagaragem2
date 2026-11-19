@@ -103,6 +103,34 @@ body {
         border-radius: 5px;
     }
 
+    /* Contador de notificações pendentes ao lado do link */
+    .header__nav__badge{
+        display: inline-block;
+        min-width: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: oklch(0.62 0.22 25);
+        color: oklch(0.96 0.01 140);
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 18px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    /* Em telas estreitas o header com todos os links visíveis não cabe:
+       reduz o padding dos links e o gap para evitar estouro horizontal */
+    @media (max-width: 1200px){
+        .header__nav__addVeicle,
+        .header__nav__garage{
+            padding: 0.5rem 0.6rem;
+        }
+
+        .header__nav{
+            gap: 4px;
+        }
+    }
+
         /* ===================== MAIN ====================== */
 
         .main{
