@@ -3,8 +3,10 @@
 // DESCRIÇÃO: Rotas de notificações de manutenção
 // ============================================================
 // PREFIXO: /api/notificacoes
+// ============================================================
 // ENDPOINTS:
 //   - GET   /api/notificacoes      → Lista notificações pendentes do usuário
+//   - POST  /api/notificacoes      → Cria/atualiza pendente para adiar alerta
 //   - PATCH /api/notificacoes/:id  → Conclui ou adia uma notificação
 // ============================================================
 // SEGURANÇA:
@@ -17,6 +19,7 @@
 
 import express from 'express';
 import Notificacao from '../models/Notificacao.js';
+import Veiculo from '../models/Veiculo.js';
 import { requireAuth } from '../middleware/auth.js';
 import { ObjectId } from 'mongodb';
 
@@ -41,6 +44,76 @@ router.get('/', requireAuth, async (req, res) => {
             success: false,
             message: 'Erro ao listar notificações.'
         });
+    }
+});
+
+// ============================================================
+// POST /api/notificacoes
+// PROPÓSITO: Cria (ou atualiza) uma notificação pendente para adiar um alerta
+// BODY: { veiculoId, tipo, dataVencimento }
+// ============================================================
+// Usado quando o alerta existe no veículo mas o cron ainda não gerou
+// a notificação correspondente. Sem isso, o botão Adiar falharia.
+// VALIDAÇÕES:
+//   - veiculoId deve ser ObjectId válido (400)
+//   - tipo é obrigatório (400)
+//   - dataVencimento deve ser data válida (400)
+//   - veículo deve pertencer ao usuário autenticado (403)
+// RETORNA: 201 com { success: true, notificacao }
+// ============================================================
+router.post('/', requireAuth, async (req, res) => {
+    try {
+        const { veiculoId, tipo, dataVencimento } = req.body;
+
+        if (!ObjectId.isValid(veiculoId)) {
+            return res.status(400).json({ success: false, message: 'ID de veículo inválido.' });
+        }
+
+        if (!tipo || typeof tipo !== 'string') {
+            return res.status(400).json({ success: false, message: 'Informe o tipo da manutenção.' });
+        }
+
+        const dataAdiada = new Date(dataVencimento);
+        if (!dataVencimento || Number.isNaN(dataAdiada.getTime())) {
+            return res.status(400).json({ success: false, message: 'Informe uma data válida para adiar.' });
+        }
+
+        // Confere a posse do veículo antes de criar qualquer notificação
+        const veiculo = await Veiculo.buscarPorId(veiculoId);
+        if (!veiculo) {
+            return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
+        }
+        if (String(veiculo.ownerId) !== String(req.user._id)) {
+            return res.status(403).json({ success: false, message: 'Acesso negado.' });
+        }
+
+        // Reaproveita a pendente existente, se houver, para não duplicar
+        const existente = await Notificacao.buscarPendentePorTipo({
+            usuarioId: req.user._id,
+            veiculoId,
+            tipo
+        });
+
+        if (existente) {
+            await Notificacao.adiarNotificacao(existente._id, dataAdiada);
+            return res.status(200).json({ success: true, message: 'Notificação adiada.' });
+        }
+
+        const { insertedId } = await Notificacao.criarNotificacao({
+            usuarioId: req.user._id,
+            veiculoId,
+            tipo,
+            mensagem: `A manutenção ${tipo} do veículo ${veiculo.apelido || veiculo.modelo} está próxima.`,
+            dataVencimento: dataAdiada
+        });
+
+        return res.status(201).json({
+            success: true,
+            notificacao: { _id: insertedId, tipo, dataVencimento: dataAdiada }
+        });
+    } catch (error) {
+        console.error('Erro ao criar notificação:', error);
+        return res.status(500).json({ success: false, message: 'Erro ao criar notificação.' });
     }
 });
 

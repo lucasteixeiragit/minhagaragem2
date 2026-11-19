@@ -277,8 +277,21 @@ async function concluirManutencao(tipo, dados) {
 // Adia a notificação: o card fica oculto até a data escolhida
 async function adiarNotificacao(tipo, novaData) {
     const notificacao = notificacoesPorTipo[tipo];
+
+    // Sem notificação pendente (o cron ainda não rodou), cria uma já adiada.
+    // Sem esse caminho o botão Adiar falharia em alertas recém-vencidos.
     if (!notificacao || !notificacao._id) {
-        throw new Error('Não há notificação pendente para adiar.');
+        const resCriacao = await fetch('/api/notificacoes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ veiculoId: veiculo._id, tipo, dataVencimento: novaData })
+        });
+
+        const respostaCriacao = await resCriacao.json();
+        if (!resCriacao.ok) {
+            throw new Error(respostaCriacao.message || 'Erro ao adiar notificação.');
+        }
+        return;
     }
 
     const res = await fetch(`/api/notificacoes/${notificacao._id}`, {

@@ -22,6 +22,17 @@ class Notificacao {
         });
     }
 
+    // Busca a notificação pendente de um veículo para um tipo de manutenção
+    static async buscarPendentePorTipo({ usuarioId, veiculoId, tipo }) {
+        const db = getBanco();
+        return await db.collection(COLECAO).findOne({
+            usuarioId: new ObjectId(usuarioId),
+            veiculoId: new ObjectId(veiculoId),
+            tipo,
+            status: 'pendente'
+        });
+    }
+
     // Verifica se já existe notificação pendente para o mesmo veículo e tipo
     static async existePendente({ usuarioId, veiculoId, tipo }) {
         const db = getBanco();
