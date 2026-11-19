@@ -1,4 +1,51 @@
 // Menu de sessão: revela links conforme o usuário autenticado e encerra a sessão.
+import { calcularProximasManutencoes } from './manutencao-utils.js';
+
+// Conta os alertas reais dos veículos do usuário.
+// Não basta contar as notificações gravadas: elas só nascem no cron diário,
+// então um veículo com revisão vencida ficaria sem link no header até o cron rodar.
+async function contarAlertas() {
+    const [resNotificacoes, resVeiculos] = await Promise.all([
+        fetch('/api/notificacoes'),
+        fetch('/api/vehicles')
+    ]);
+
+    const notificacoes = resNotificacoes.ok ? ((await resNotificacoes.json()).notificacoes || []) : [];
+    const veiculos = resVeiculos.ok ? ((await resVeiculos.json()).veiculos || []) : [];
+
+    // Índice por veículo + tipo para saber quais alertas foram adiados
+    const porChave = {};
+    for (const notificacao of notificacoes) {
+        porChave[`${notificacao.veiculoId}:${notificacao.tipo}`] = notificacao;
+    }
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const alertas = [];
+    for (const veiculo of veiculos) {
+        for (const manutencao of calcularProximasManutencoes(veiculo, new Date())) {
+            if (manutencao.status === 'ok') continue;
+
+            // Alerta adiado para uma data futura fica oculto também no header
+            const notificacao = porChave[`${veiculo._id}:${manutencao.nome}`];
+            if (notificacao && notificacao.dataVencimento) {
+                const dataAdiada = new Date(notificacao.dataVencimento);
+                dataAdiada.setHours(0, 0, 0, 0);
+                if (dataAdiada > hoje) continue;
+            }
+
+            alertas.push({
+                veiculoId: veiculo._id,
+                status: manutencao.status,
+                kmRestantes: manutencao.kmRestantes
+            });
+        }
+    }
+
+    return alertas;
+}
+
 (async function configurarMenuSessao() {
     try {
         const res = await fetch('/api/auth/me');
@@ -31,30 +78,33 @@
             });
         }
 
-        // Contador de notificações pendentes exibido ao lado do link
-        // O link leva à página do veículo que tem o alerta, onde ficam os botões Concluir/Adiar
+        // Contador de alertas exibido ao lado do link
+        // O link leva à página do veículo com o alerta mais urgente, onde ficam Concluir/Adiar
         if (badgeNotificacoes) {
             try {
-                const respostaNotificacoes = await fetch('/api/notificacoes');
-                if (respostaNotificacoes.ok) {
-                    const dadosNotificacoes = await respostaNotificacoes.json();
-                    const pendentes = dadosNotificacoes.notificacoes || [];
-                    const total = pendentes.length;
+                const alertas = await contarAlertas();
+                const total = alertas.length;
 
-                    badgeNotificacoes.textContent = total;
-                    badgeNotificacoes.style.display = total > 0 ? '' : 'none';
+                badgeNotificacoes.textContent = total;
+                badgeNotificacoes.style.display = total > 0 ? '' : 'none';
 
-                    if (linkNotificacoes) {
-                        if (total > 0 && pendentes[0].veiculoId) {
-                            linkNotificacoes.href = `./veiculo-detalhes.html?id=${pendentes[0].veiculoId}`;
-                        } else {
-                            // Sem notificações não há para onde levar: esconde o link
-                            linkNotificacoes.style.display = 'none';
-                        }
+                if (linkNotificacoes) {
+                    if (total > 0) {
+                        // atrasada vem antes de urgente, que vem antes de alerta
+                        const prioridade = { atrasada: 0, urgente: 1, alerta: 2 };
+                        const maisUrgente = [...alertas].sort((a, b) => {
+                            const diferenca = (prioridade[a.status] ?? 3) - (prioridade[b.status] ?? 3);
+                            return diferenca !== 0 ? diferenca : a.kmRestantes - b.kmRestantes;
+                        })[0];
+
+                        linkNotificacoes.href = `./veiculo-detalhes.html?id=${maisUrgente.veiculoId}`;
+                    } else {
+                        // Sem alertas não há para onde levar: esconde o link
+                        linkNotificacoes.style.display = 'none';
                     }
                 }
             } catch (erroNotificacoes) {
-                // Falha ao contar notificações não deve quebrar o menu
+                // Falha ao contar alertas não deve quebrar o menu
                 badgeNotificacoes.style.display = 'none';
             }
         }
