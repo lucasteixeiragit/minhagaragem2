@@ -8,6 +8,7 @@
 
 import express from 'express';
 import Veiculo from '../models/Veiculo.js';
+import Notificacao from '../models/Notificacao.js';
 import { requireAuth } from '../middleware/auth.js';
 import { registrarAuditoria } from '../utils/audit.js';
 import { verificarAcessoManutencao, verificarAcessoVeiculo } from '../utils/authorization.js';
@@ -72,6 +73,10 @@ router.post('/', requireAuth, async (req, res) => {
         if (resultado.matchedCount === 0) {
             return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
         }
+
+        // A manutenção registrada resolve a pendência: conclui as notificações
+        // pendentes desse tipo para o veículo, para não ficarem presas no badge
+        await Notificacao.concluirPorTipo({ veiculoId: req.params.id, tipo: dados.tipo });
 
         await registrarAuditoria({
             userId: req.user._id,
