@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test src/js/__tests__/*.test.js",
-    "dev": "nodemon ./src/js/server.js"
+    "dev": "nodemon ./src/js/server.js",
+    "notificar": "node ./scripts/notificar.js"
   },
   "repository": {
     "type": "git",
