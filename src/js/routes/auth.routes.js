@@ -360,7 +360,10 @@ router.post('/forgot-password', limitadorLogin, async (req, res) => { // rota PO
         await Usuario.salvarTokenRedefinicao(usuario._id, token, expiraEm);
 
         // Monta link que vai no email
-        const link = `https://minhagaragem.duckdns.org/resetPass.html?token=${token}`;
+        // APP_URL vem do .env: trocar de domínio não exige mexer no código.
+        // O fallback cobre o ambiente local, onde a variável pode não existir.
+        const baseUrl = process.env.APP_URL || 'https://minhagaragem.net';
+        const link = `${baseUrl}/resetPass.html?token=${token}`;
 
         //Envia o email
         try {
