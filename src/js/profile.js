@@ -32,15 +32,22 @@ function formatarData(iso) {
         document.getElementById('novoNome').value = usuario.nome;
 
         // O menu de vínculos varia apenas na apresentação; a autorização fica na API.
+        // O elemento pode não existir no HTML (link comentado em profile.html).
+        // SEM A GUARDA: getElementById devolve null, o acesso a .textContent
+        // lança TypeError, o catch abaixo manda para /login.html e o login,
+        // vendo a sessão válida, redireciona para /index.html — o sintoma
+        // "Perfil volta para a página inicial".
         const linkVinculos = document.getElementById('linkVinculos');
-        if (usuario.role === 'USER') {
-            linkVinculos.textContent = 'Minhas Mecânicas';
-            linkVinculos.href = 'minhas-mecanicas.html';
-            linkVinculos.style.display = '';
-        } else if (usuario.role === 'MECANICA') {
-            linkVinculos.textContent = 'Meus Clientes';
-            linkVinculos.href = 'meus-clientes.html';
-            linkVinculos.style.display = '';
+        if (linkVinculos) {
+            if (usuario.role === 'USER') {
+                linkVinculos.textContent = 'Minhas Mecânicas';
+                linkVinculos.href = 'minhas-mecanicas.html';
+                linkVinculos.style.display = '';
+            } else if (usuario.role === 'MECANICA') {
+                linkVinculos.textContent = 'Meus Clientes';
+                linkVinculos.href = 'meus-clientes.html';
+                linkVinculos.style.display = '';
+            }
         }
     } catch (error) {
         window.location.href = '/login.html';
