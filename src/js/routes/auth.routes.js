@@ -20,6 +20,9 @@ import { validarCadastro, validarLogin, validarTrocaSenha } from '../middleware/
 import { limitadorLogin, limitadorCadastro, limitadorConfirmacao, limitadorReenvio } from '../middleware/rateLimit.js';
 import crypto from 'crypto'; // rypto é um módulo embutido do Node (não precisa instalar nada). Ele fornece o randomBytes para gerar o token
 import {enviarEmail} from '../services/emailService.js';
+// Templates HTML com a assinatura da marca.
+// Usados nos e-mails de confirmação de cadastro e de redefinição de senha.
+import {emailCodigoConfirmacao, emailRedefinicaoSenha} from '../services/emailTemplates.js';
 
 const router = express.Router();
 
@@ -46,7 +49,9 @@ router.post('/register', limitadorCadastro, validarCadastro, async (req, res) =>
             enviarEmail({
                 para: existente.email,
                 assunto: 'Confirme seu cadastro - Minha Garagem',
-                texto: `Olá ${existente.nome}, seu código de confirmação é ${codigoPendente}. Ele expira em 15 minutos.`
+                texto: `Olá ${existente.nome}, seu código de confirmação é ${codigoPendente}. Ele expira em 15 minutos.`,
+                // Versão HTML com a assinatura da marca (services/emailTemplates.js)
+                html: emailCodigoConfirmacao({ nome: existente.nome, codigo: codigoPendente })
             }).catch(emailError => {
                 console.error('Erro ao enviar código de confirmação:', emailError.message);
             });
@@ -79,7 +84,9 @@ router.post('/register', limitadorCadastro, validarCadastro, async (req, res) =>
         enviarEmail({
             para: email,
             assunto: 'Confirme seu cadastro - Minha Garagem',
-            texto: `Olá ${nome}, seu código de confirmação é ${codigo}. Ele expira em 15 minutos.`
+            texto: `Olá ${nome}, seu código de confirmação é ${codigo}. Ele expira em 15 minutos.`,
+            // Versão HTML com a assinatura da marca (services/emailTemplates.js)
+            html: emailCodigoConfirmacao({ nome, codigo })
         }).catch(emailError => {
             console.error('Erro ao enviar código de confirmação:', emailError.message);
         });
@@ -194,7 +201,9 @@ router.post('/reenviar-codigo', limitadorReenvio, async (req, res) => {
         enviarEmail({
             para: usuario.email,
             assunto: 'Novo código de confirmação - Minha Garagem',
-            texto: `Olá ${usuario.nome}, seu novo código de confirmação é ${codigo}. Ele expira em 15 minutos.`
+            texto: `Olá ${usuario.nome}, seu novo código de confirmação é ${codigo}. Ele expira em 15 minutos.`,
+            // Versão HTML com a assinatura da marca (services/emailTemplates.js)
+            html: emailCodigoConfirmacao({ nome: usuario.nome, codigo })
         }).catch(emailError => {
             console.error('Erro ao reenviar código de confirmação:', emailError.message);
         });
@@ -370,7 +379,9 @@ router.post('/forgot-password', limitadorLogin, async (req, res) => { // rota PO
             const infoEmail = await enviarEmail({
                 para: usuario.email,
                 assunto: 'Redefinição de senha - Minha Garagem',
-                texto: `Olá ${usuario.nome}, recebemos um pedido de redefinição de senha. Acesse o link abaixo para definir uma nova senha (válido por 1 hora):\n\n${link}\n\nSe você não solicitou, ignore este email.`
+                texto: `Olá ${usuario.nome}, recebemos um pedido de redefinição de senha. Acesse o link abaixo para definir uma nova senha (válido por 1 hora):\n\n${link}\n\nSe você não solicitou, ignore este email.`,
+                // Versão HTML com botão e assinatura da marca (services/emailTemplates.js)
+                html: emailRedefinicaoSenha({ nome: usuario.nome, link })
             });
             console.log('Email enviado com sucesso:', infoEmail.messageId);
         } catch (emailError) {
