@@ -421,6 +421,17 @@ body {
     display: none;
 }
 
+/* Formulário de criação de usuário.
+   Antes era um style inline no admin.html, que media query nenhuma
+   consegue sobrescrever; virou classe para o responsive.css poder
+   empilhar os campos no celular. */
+.admin__form__criar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr auto;
+    gap: 12px;
+    align-items: end;
+}
+
 .admin__panel--active {
     display: block;
 }

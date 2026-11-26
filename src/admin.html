@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administração - Minha Garagem</title>
     <link rel="stylesheet" href="styles/auth.css">
+    <link rel="stylesheet" href="./styles/style.css">
+    <link rel="stylesheet" href="./styles/responsive.css">
     <link rel="icon" type="image/png" href="assets/favicons/favicon.png">
 </head>
 <body>
@@ -14,6 +16,7 @@
                 <span class="header__home__icon">🏠</span>
                 Minha Garagem
             </a>
+            <button class="header__toggle" id="btnMenu" type="button" aria-label="Abrir menu" aria-expanded="false">&#9776;</button>
             <nav class="header__nav">
                 <a href="index.html">Garagem</a>
                 <a href="profile.html">Perfil</a>
@@ -36,7 +39,7 @@
         <div class="admin__panel admin__panel--active" id="panel-users">
             <div class="profile__card" style="margin-bottom: 20px;">
                 <h2>Criar Usuário</h2>
-                <form id="formCriarUsuario" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 12px; align-items: end;">
+                <form id="formCriarUsuario" class="admin__form__criar">
                     <div class="form__group" style="margin: 0;">
                         <label>Nome</label>
                         <input type="text" id="novoNome" required minlength="2">
@@ -420,5 +423,6 @@
         }
     </script> -->
     <script type="module" src="./js/admin.js"></script>
+    <script src="./js/header-menu.js"></script>
 </body>
 </html>
