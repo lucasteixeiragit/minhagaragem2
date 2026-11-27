@@ -86,7 +86,14 @@ export async function criarLinkPagamento({ orderNsu, valorCentavos, descricao })
             return { erro: 'A InfinitePay não devolveu a URL de pagamento.' };
         }
 
-        return { url, bruto: dados };
+        // O slug da fatura é o último segmento da URL de checkout
+        // (https://checkout.infinitepay.io/<handle>/<slug>). Guardamos ele
+        // porque o webhook da InfinitePay devolve esse slug em invoice_slug
+        // e nem sempre devolve o nosso order_nsu, então o casamento
+        // confiável é por slug.
+        const slug = String(url).split('/').filter(Boolean).pop() || null;
+
+        return { url, slug, bruto: dados };
     } catch (error) {
         console.error('Erro de rede ao criar link InfinitePay:', error.message);
         return { erro: 'Não foi possível falar com a InfinitePay agora.' };

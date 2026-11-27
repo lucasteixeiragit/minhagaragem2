@@ -44,15 +44,18 @@ class Assinatura {
         await db.collection(COLECAO).createIndex({ userId: 1, criadoEm: -1 });
     }
 
-    // Registra uma cobrança recém-criada no gateway
-    static async criar({ userId, orderNsu, valorCentavos }) {
+    // Registra uma cobrança recém-criada no gateway.
+    // O slug vem da URL de checkout e é o que o webhook devolve em
+    // invoice_slug; guardar aqui permite casar o aviso mesmo quando o
+    // gateway não devolve o nosso orderNsu.
+    static async criar({ userId, orderNsu, valorCentavos, slug }) {
         const db = getBanco();
         return await db.collection(COLECAO).insertOne({
             userId: new ObjectId(userId),
             gateway: 'infinitepay',
             orderNsu,
             transactionNsu: null,
-            slug: null,
+            slug: slug || null,
             status: 'pendente',
             valorCentavos,
             criadoEm: new Date(),
@@ -64,6 +67,36 @@ class Assinatura {
     static async buscarPorOrderNsu(orderNsu) {
         const db = getBanco();
         return await db.collection(COLECAO).findOne({ orderNsu });
+    }
+
+    // Busca a cobrança pelo slug da fatura. Usado pelo webhook quando o
+    // orderNsu recebido não corresponde a nenhum pedido nosso.
+    static async buscarPorSlug(slug) {
+        if (!slug) return null;
+        const db = getBanco();
+        return await db.collection(COLECAO).findOne({ slug });
+    }
+
+    // ========================================================
+    // MÉTODO: marcarPagaPorId(id, { transactionNsu, slug })
+    // PROPÓSITO: Marca como paga pelo _id do documento. Necessário quando
+    // o webhook casou a cobrança pelo slug e não temos o orderNsu em mãos.
+    // RETORNO: resultado do updateOne; modifiedCount 0 significa que já
+    // estava paga, e a rota usa isso para não estender o prazo duas vezes.
+    // ========================================================
+    static async marcarPagaPorId(id, { transactionNsu, slug }) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(id), status: { $ne: 'pago' } },
+            {
+                $set: {
+                    status: 'pago',
+                    transactionNsu: transactionNsu || null,
+                    slug: slug || null,
+                    pagoEm: new Date()
+                }
+            }
+        );
     }
 
     // ========================================================

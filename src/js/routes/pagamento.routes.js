@@ -129,10 +129,12 @@ router.post('/assinar', limitadorAssinar, requireAuth, async (req, res) => {
 
         // Grava a cobrança pendente antes de mandar o usuário ao gateway.
         // O índice único em orderNsu protege contra pedido duplicado.
+        // O slug vem da URL e é o que o webhook devolve em invoice_slug.
         await Assinatura.criar({
             userId: usuario._id,
             orderNsu,
-            valorCentavos: PRECO_CENTAVOS
+            valorCentavos: PRECO_CENTAVOS,
+            slug: link.slug
         });
 
         await registrarAuditoria({
@@ -182,11 +184,19 @@ router.post('/webhook', async (req, res) => {
             return res.status(400).json({ success: false, message: 'order_nsu ausente.' });
         }
 
-        const assinatura = await Assinatura.buscarPorOrderNsu(orderNsu);
+        // O webhook da InfinitePay nem sempre devolve o nosso order_nsu:
+        // em produção ele veio como um UUID próprio do gateway. Por isso o
+        // casamento principal é pelo slug da fatura (invoice_slug), que
+        // guardamos na criação do link, e o order_nsu fica como alternativa.
+        let assinatura = await Assinatura.buscarPorOrderNsu(orderNsu);
+
+        if (!assinatura) {
+            assinatura = await Assinatura.buscarPorSlug(slug);
+        }
 
         if (!assinatura) {
             // Pedido desconhecido: aceita o 200 para o gateway não reenviar
-            console.warn('Webhook para order_nsu desconhecido:', orderNsu);
+            console.warn('Webhook para order_nsu desconhecido:', orderNsu, '| slug:', slug);
             return res.status(200).json({ success: true, ignorado: true });
         }
 
@@ -208,7 +218,9 @@ router.post('/webhook', async (req, res) => {
             return res.status(200).json({ success: true, confirmado: false, motivo: 'valor' });
         }
 
-        const resultado = await Assinatura.marcarPaga(orderNsu, { transactionNsu, slug });
+        // Marca pelo _id: o orderNsu recebido pode ser o UUID do gateway,
+        // que não é a chave do nosso documento.
+        const resultado = await Assinatura.marcarPagaPorId(assinatura._id, { transactionNsu, slug });
 
         // modifiedCount 0 = outro processo já marcou como paga
         if (resultado.modifiedCount === 0) {
@@ -292,11 +304,19 @@ router.post('/confirmar', limitadorAssinar, requireAuth, async (req, res) => {
         const transactionNsu = corpo.transactionNsu || null;
         const slug = corpo.slug || null;
 
-        if (!orderNsu) {
-            return res.status(400).json({ success: false, message: 'orderNsu ausente.' });
+        // orderNsu ou slug: o retorno do checkout traz os dois, mas o slug
+        // é o que sempre existe, então aceitamos qualquer um dos dois.
+        if (!orderNsu && !slug) {
+            return res.status(400).json({ success: false, message: 'orderNsu ou slug é obrigatório.' });
         }
 
-        const assinatura = await Assinatura.buscarPorOrderNsu(orderNsu);
+        // Mesmo casamento do webhook: orderNsu primeiro, slug como
+        // alternativa, porque o retorno do checkout traz o slug da fatura.
+        let assinatura = await Assinatura.buscarPorOrderNsu(orderNsu);
+
+        if (!assinatura) {
+            assinatura = await Assinatura.buscarPorSlug(slug);
+        }
 
         if (!assinatura) {
             return res.status(404).json({ success: false, message: 'Cobrança não encontrada.' });
@@ -322,7 +342,9 @@ router.post('/confirmar', limitadorAssinar, requireAuth, async (req, res) => {
             return res.status(200).json({ success: true, confirmado: false, motivo: 'valor' });
         }
 
-        const resultado = await Assinatura.marcarPaga(orderNsu, { transactionNsu, slug });
+        // Marca pelo _id: o orderNsu recebido pode ser o UUID do gateway,
+        // que não é a chave do nosso documento.
+        const resultado = await Assinatura.marcarPagaPorId(assinatura._id, { transactionNsu, slug });
 
         if (resultado.modifiedCount === 0) {
             return res.status(200).json({ success: true, jaProcessado: true, plano: 'PRO' });
