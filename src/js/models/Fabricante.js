@@ -114,7 +114,9 @@ class Fabricante {
         
         // Extrai apenas o campo 'marca' de cada fabricante
         // map() transforma [{marca: "Chevrolet", ...}, ...] em ["Chevrolet", ...]
-        return fabricantes.map(f => f.marca);
+        return fabricantes
+        .map(f => f.marca)
+        .sort((a, b) => a.localeCompare(b, `pt-BR`, {sensitivity: 'base', numeric: true}));
     }
 
     // ========================================================
@@ -142,7 +144,8 @@ class Fabricante {
         return fabricante.modelos.map(m => ({
             nome: m.nome,
             descricao: m.descricao
-        }));
+        }))
+        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base', numeric: true }));
     }
 
     // ========================================================
@@ -178,7 +181,8 @@ class Fabricante {
             motor: v.motor,
             potencia: v.potencia,
             anos: v.anos
-        }));
+        }))
+        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base', numeric: true }));
     }
 
     // ========================================================
