@@ -173,6 +173,11 @@ router.post('/webhook', async (req, res) => {
         const transactionNsu = corpo.transaction_nsu;
         const slug = corpo.slug || corpo.invoice_slug;
 
+        // Log do corpo completo: sem ele não é possível reconciliar um
+        // pagamento cujo order_nsu não exista na coleção assinaturas.
+        // Não há dado sensível aqui (sem cartão, sem documento).
+        console.log('Webhook InfinitePay recebido:', JSON.stringify(corpo));
+
         if (!orderNsu) {
             return res.status(400).json({ success: false, message: 'order_nsu ausente.' });
         }
@@ -266,6 +271,81 @@ router.get('/status', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('Erro ao consultar status do plano:', error);
         return res.status(500).json({ success: false, message: 'Erro ao consultar o plano.' });
+    }
+});
+
+// ============================================================
+// POST /api/pagamento/confirmar
+// PROPÓSITO: Confirma o pagamento quando o usuário volta do checkout
+// USADO POR: assinatura.js, ao carregar a página com os parâmetros
+// que a InfinitePay anexa à redirect_url (order_nsu, slug,
+// transaction_nsu, receipt_url).
+// POR QUE EXISTE: o webhook pode atrasar ou se perder. O retorno do
+// navegador é o caminho mais rápido para o usuário ver o plano ativo.
+// SEGURANÇA: exige sessão e só confirma cobrança do próprio usuário.
+// O corpo não é confiável: quem decide é verificarPagamento().
+// ============================================================
+router.post('/confirmar', limitadorAssinar, requireAuth, async (req, res) => {
+    try {
+        const corpo = req.body || {};
+        const orderNsu = corpo.orderNsu;
+        const transactionNsu = corpo.transactionNsu || null;
+        const slug = corpo.slug || null;
+
+        if (!orderNsu) {
+            return res.status(400).json({ success: false, message: 'orderNsu ausente.' });
+        }
+
+        const assinatura = await Assinatura.buscarPorOrderNsu(orderNsu);
+
+        if (!assinatura) {
+            return res.status(404).json({ success: false, message: 'Cobrança não encontrada.' });
+        }
+
+        // IDOR: impede confirmar a cobrança de outra pessoa
+        if (String(assinatura.userId) !== String(req.user._id)) {
+            return res.status(403).json({ success: false, message: 'Acesso negado.' });
+        }
+
+        if (assinatura.status === 'pago') {
+            return res.status(200).json({ success: true, jaProcessado: true, plano: 'PRO' });
+        }
+
+        const verificacao = await verificarPagamento({ orderNsu, transactionNsu, slug });
+
+        if (!verificacao.pago) {
+            return res.status(200).json({ success: true, confirmado: false });
+        }
+
+        if (verificacao.valorCentavos !== null && verificacao.valorCentavos < PRECO_CENTAVOS) {
+            console.error('Valor pago menor que o esperado:', orderNsu, verificacao.valorCentavos);
+            return res.status(200).json({ success: true, confirmado: false, motivo: 'valor' });
+        }
+
+        const resultado = await Assinatura.marcarPaga(orderNsu, { transactionNsu, slug });
+
+        if (resultado.modifiedCount === 0) {
+            return res.status(200).json({ success: true, jaProcessado: true, plano: 'PRO' });
+        }
+
+        const usuario = await Usuario.buscarPorId(assinatura.userId);
+        const expiraEm = somarDias(usuario ? usuario.planoExpiraEm : null, DIAS_ASSINATURA);
+
+        await Usuario.atualizarPlano(assinatura.userId, { plano: 'PRO', planoExpiraEm: expiraEm });
+
+        await registrarAuditoria({
+            userId: assinatura.userId,
+            action: 'PAYMENT_CONFIRMED',
+            resource: 'assinatura',
+            resourceId: assinatura._id,
+            ip: req.ip,
+            userAgent: req.get('user-agent')
+        });
+
+        return res.status(200).json({ success: true, confirmado: true, plano: 'PRO', planoExpiraEm: expiraEm });
+    } catch (error) {
+        console.error('Erro ao confirmar pagamento:', error);
+        return res.status(500).json({ success: false, message: 'Erro ao confirmar o pagamento.' });
     }
 });
 

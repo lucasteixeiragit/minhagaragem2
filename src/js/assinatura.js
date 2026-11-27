@@ -11,8 +11,9 @@
 //
 // DEPENDE DE: js/plano.js (carregarPlano, formatarPreco, formatarData)
 // API USADA:
-//   GET  /api/pagamento/status  → plano, preço, trial, histórico
-//   POST /api/pagamento/assinar → trial na 1ª vez, senão { url }
+//   GET  /api/pagamento/status   → plano, preço, trial, histórico
+//   POST /api/pagamento/assinar  → trial na 1ª vez, senão { url }
+//   POST /api/pagamento/confirmar → confirma o retorno do checkout
 // ============================================================
 
 import { carregarPlano, formatarPreco, formatarData } from './plano.js';
@@ -149,8 +150,55 @@ async function assinar() {
 }
 
 // ============================================================
+// FUNÇÃO: confirmarRetorno()
+// PROPÓSITO: Quando o usuário volta do checkout, a InfinitePay anexa
+// order_nsu, slug, transaction_nsu e receipt_url à redirect_url.
+// Esta função envia esses dados para a API, que confirma o pagamento
+// no gateway e ativa o plano sem esperar o webhook.
+// RETORNO: true quando o plano foi ativado agora
+// ============================================================
+async function confirmarRetorno() {
+    const orderNsu = urlParams.get('order_nsu');
+    const slug = urlParams.get('slug');
+    const transactionNsu = urlParams.get('transaction_nsu');
+
+    // Sem order_nsu não há o que confirmar: é uma visita normal à página
+    if (!orderNsu) return false;
+
+    try {
+        const resposta = await fetch('/api/pagamento/confirmar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderNsu, slug, transactionNsu })
+        });
+        const dados = await resposta.json();
+
+        if (dados.confirmado) {
+            mostrarMensagem('Pagamento confirmado. Seu plano Pro está ativo.', 'sucesso');
+            return true;
+        }
+
+        if (dados.jaProcessado) {
+            mostrarMensagem('Este pagamento já havia sido confirmado.', 'sucesso');
+            return true;
+        }
+
+        // Ainda não aprovado: o webhook pode chegar em instantes
+        mostrarMensagem('Pagamento ainda não confirmado pela InfinitePay. Recarregue em alguns instantes.');
+        return false;
+    } catch (error) {
+        console.error('Erro ao confirmar retorno do checkout:', error);
+        mostrarMensagem('Não foi possível confirmar o pagamento agora.');
+        return false;
+    }
+}
+
+// ============================================================
 // EXECUÇÃO
 // ============================================================
 elMotivo.textContent = MOTIVOS[motivo] || MOTIVOS.geral;
 btnAssinar.addEventListener('click', assinar);
-renderizarStatus();
+
+// Confirma o retorno do checkout antes de desenhar o status, para a
+// tela já aparecer como Pro quando o pagamento foi aprovado.
+confirmarRetorno().finally(renderizarStatus);
