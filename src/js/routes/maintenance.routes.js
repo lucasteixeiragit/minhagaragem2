@@ -8,7 +8,9 @@
 
 import express from 'express';
 import Veiculo from '../models/Veiculo.js';
+import Notificacao from '../models/Notificacao.js';
 import { requireAuth } from '../middleware/auth.js';
+import { podeAnexarNotaFiscal } from '../middleware/plano.js';
 import { registrarAuditoria } from '../utils/audit.js';
 import { verificarAcessoManutencao, verificarAcessoVeiculo } from '../utils/authorization.js';
 
@@ -46,6 +48,16 @@ router.post('/', requireAuth, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Data e tipo são obrigatórios.' });
         }
 
+        // PLANO: o anexo de nota fiscal é recurso do Pro. No FREE a
+        // manutenção é salva normalmente, só que sem o anexo — rejeitar a
+        // requisição inteira puniria o usuário por um campo opcional.
+        // LIDO POR: veiculo-detalhes.js, que mostra o aviso de upgrade.
+        const anexoPermitido = podeAnexarNotaFiscal(req.user);
+        if (!anexoPermitido) {
+            delete dados.notaFiscal;
+            delete dados.notaFiscalNome;
+        }
+
         let ownerId;
 
         if (req.user.role === 'ADMIN') {
@@ -73,6 +85,10 @@ router.post('/', requireAuth, async (req, res) => {
             return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
         }
 
+        // A manutenção registrada resolve a pendência: conclui as notificações
+        // pendentes desse tipo para o veículo, para não ficarem presas no badge
+        await Notificacao.concluirPorTipo({ veiculoId: req.params.id, tipo: dados.tipo });
+
         await registrarAuditoria({
             userId: req.user._id,
             action: 'CREATE_MAINTENANCE',
@@ -82,7 +98,11 @@ router.post('/', requireAuth, async (req, res) => {
             userAgent: req.get('user-agent')
         });
 
-        res.status(201).json({ success: true, message: 'Manutenção adicionada.' });
+        res.status(201).json({
+            success: true,
+            message: 'Manutenção adicionada.',
+            anexoRemovido: !anexoPermitido
+        });
     } catch (error) {
         console.error('Erro ao adicionar manutenção:', error);
         res.status(500).json({ success: false, message: 'Erro ao adicionar manutenção.' });
@@ -139,6 +159,71 @@ router.delete('/:manutencaoId', requireAuth, async (req, res) => {
 });
 
 // ============================================================
+// PUT /api/vehicles/:id/maintenance/:manutencaoId
+// PROPÓSITO: Atualiza uma manutenção específica do veículo
+// REGRAS DE ACESSO (Fase 6 - Vínculos):
+//   - USER dono: pode editar manutenção do seu próprio veículo
+//   - MECANICA: apenas se houver vínculo ATIVO com o proprietário do veículo
+//   - ADMIN: acesso total
+//   - Whitelist de campos no body
+// ============================================================
+router.put('/:manutencaoId', requireAuth, async (req, res) => {
+    try {
+        const dados = extrairCamposManutencao(req.body);
+
+        // PLANO: mesma regra do POST. Sem esta checagem o usuário FREE
+        // contornaria o limite anexando a nota por uma edição.
+        const anexoPermitido = podeAnexarNotaFiscal(req.user);
+        if (!anexoPermitido) {
+            delete dados.notaFiscal;
+            delete dados.notaFiscalNome;
+        }
+
+        if (Object.keys(dados).length === 0) {
+            return res.status(400).json({ success: false, message: 'Nenhum campo para atualizar.' });
+        }
+
+        if (req.user.role === 'ADMIN') {
+            const veiculo = await Veiculo.buscarPorIdAdmin(req.params.id);
+            if (!veiculo) {
+                return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
+            }
+            await Veiculo.atualizarManutencao(req.params.id, req.params.manutencaoId, dados);
+        } else if (req.user.role === 'MECANICA') {
+            const temAcesso = await verificarAcessoManutencao(req.user._id, req.params.id);
+            if (!temAcesso) {
+                return res.status(403).json({ success: false, message: 'Você não tem acesso a este veículo.' });
+            }
+            await Veiculo.atualizarManutencao(req.params.id, req.params.manutencaoId, dados);
+        } else {
+            const resultado = await Veiculo.atualizarManutencaoDoProprietario(
+                req.params.id,
+                req.user._id,
+                req.params.manutencaoId,
+                dados
+            );
+            if (resultado.matchedCount === 0) {
+                return res.status(404).json({ success: false, message: 'Veículo ou manutenção não encontrado.' });
+            }
+        }
+
+        await registrarAuditoria({
+            userId: req.user._id,
+            action: 'UPDATE_MAINTENANCE',
+            resource: 'veiculo',
+            resourceId: req.params.id,
+            ip: req.ip,
+            userAgent: req.get('user-agent')
+        });
+
+        res.json({ success: true, message: 'Manutenção atualizada.' });
+    } catch (error) {
+        console.error('Erro ao atualizar manutenção:', error);
+        res.status(500).json({ success: false, message: 'Erro ao atualizar manutenção.' });
+    }
+});
+
+// ============================================================
 // PATCH /api/vehicles/:id/maintenance/km
 // PROPÓSITO: Atualiza a quilometragem atual do veículo
 // REGRAS DE ACESSO (Fase 6 - Vínculos):
@@ -185,5 +270,61 @@ router.patch('/km', requireAuth, async (req, res) => {
         res.status(500).json({ success: false, message: 'Erro ao atualizar KM.' });
     }
 });
+
+// ============================================================
+// GET /api/vehicles/:id/maintenance/:manutencaoId/nota-fiscal
+// PROPÓSITO: Baixa a nota fiscal de uma manutenção
+// ============================================================
+router.get('/:manutencaoId/nota-fiscal', requireAuth, async (req, res) => {
+    try {
+        // Busca o veículo
+        let veiculo;
+        if (req.user.role === 'ADMIN') {
+            veiculo = await Veiculo.buscarPorIdAdmin(req.params.id);
+        } else if (req.user.role === 'MECANICA') {
+            const temAcesso = await verificarAcessoManutencao(req.user._id, req.params.id);
+            if (!temAcesso) {
+                return res.status(403).json({ success: false, message: 'Acesso negado.' });
+            }
+            veiculo = await Veiculo.buscarPorIdAdmin(req.params.id);
+        } else {
+            veiculo = await Veiculo.buscarPorIdEProprietario(req.params.id, req.user._id);
+        }
+
+        if (!veiculo) {
+            return res.status(404).json({ success: false, message: 'Veículo não encontrado.' });
+        }
+
+        // Procura a manutenção
+        const manutencao = (veiculo.manutencoes || []).find(m => m.id === req.params.manutencaoId);
+        if (!manutencao || !manutencao.notaFiscal) {
+            return res.status(404).json({ success: false, message: 'Nota fiscal não encontrada.' });
+        }
+
+        // Separa o tipo MIME do Base64
+        // Ex: "data:application/pdf;base64,JVBERi0x..."
+        const partes = manutencao.notaFiscal.match(/^data:([^;]+);base64,(.*)$/);
+        if (!partes) {
+            return res.status(400).json({ success: false, message: 'Formato de nota fiscal inválido.' });
+        }
+
+        const mimeType = partes[1];
+        const base64 = partes[2];
+        const buffer = Buffer.from(base64, 'base64');
+
+        // Nome do arquivo
+        const nome = manutencao.notaFiscalNome || 'nota-fiscal';
+        const ext = mimeType === 'application/pdf' ? 'pdf' : 'jpg';
+        const filename = `${nome}.${ext}`;
+
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+        res.send(buffer);
+    } catch (error) {
+        console.error('Erro ao baixar nota fiscal:', error);
+        res.status(500).json({ success: false, message: 'Erro ao baixar nota fiscal.' });
+    }
+});
+
 
 export default router;

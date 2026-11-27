@@ -10,12 +10,21 @@
 //   senhaHash: String (bcrypt),
 //   role: "USER" | "MECANICA" | "ADMIN",
 //   ativo: Boolean,
+//   plano: "FREE" | "PRO",
+//   planoExpiraEm: Date | null,
+//   trialUsado: Boolean,
 //   createdAt: Date,
 //   updatedAt: Date,
 //   lastLoginAt: Date
 // }
 // NUNCA armazenar senha em texto puro.
 // ============================================================
+
+// OPERACOES NO BANCO: findOne - InsertOne - updateOne - deleteOne
+
+// São operadores do MongoDB para atualização:
+// $set → define/atualiza um campo. Se o campo não existe, cria.
+// $unset → remove um campo do documento.
 
 import { getBanco } from '../config/database.js';
 import { ObjectId } from 'mongodb';
@@ -53,7 +62,7 @@ class Usuario {
     // MÉTODO: criar({ nome, email, senhaHash, role })
     // PROPÓSITO: Cria um novo usuário
     // ========================================================
-    static async criar({ nome, email, senhaHash, role = 'USER' }) {
+    static async criar({ nome, email, senhaHash, role = 'USER', ativo = true}) {
         const db = getBanco();
         const agora = new Date();
         const resultado = await db.collection(COLECAO).insertOne({
@@ -61,7 +70,12 @@ class Usuario {
             email: email.toLowerCase().trim(),
             senhaHash,
             role,
-            ativo: true,
+            ativo,
+            // Todo usuário nasce no plano gratuito, sem prazo e sem teste usado.
+            // LIDO POR: middleware/plano.js (planoAtivo) e routes/pagamento.routes.js
+            plano: 'FREE',
+            planoExpiraEm: null,
+            trialUsado: false,
             createdAt: agora,
             updatedAt: agora,
             lastLoginAt: null
@@ -78,6 +92,42 @@ class Usuario {
         return await db.collection(COLECAO).updateOne(
             { _id: new ObjectId(id) },
             { $set: { ...dados, updatedAt: new Date() } }
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: atualizarPlano(id, { plano, planoExpiraEm })
+    // PROPÓSITO: Define o plano do usuário e até quando ele vale
+    // CHAMADO POR: routes/pagamento.routes.js (ativação do trial e
+    // confirmação de pagamento no webhook)
+    // LIDO POR: middleware/plano.js, que decide o que o usuário acessa
+    // ========================================================
+    static async atualizarPlano(id, { plano, planoExpiraEm }) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { plano, planoExpiraEm, updatedAt: new Date() } }
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: marcarTrialUsado(id, expiraEm)
+    // PROPÓSITO: Concede o teste de 7 dias e registra que já foi usado
+    // REGRA: só pode ser chamado uma vez por usuário; a checagem de
+    // trialUsado fica na rota, que lê o documento antes
+    // ========================================================
+    static async marcarTrialUsado(id, expiraEm) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(id) },
+            {
+                $set: {
+                    plano: 'PRO',
+                    planoExpiraEm: expiraEm,
+                    trialUsado: true,
+                    updatedAt: new Date()
+                }
+            }
         );
     }
 
@@ -102,6 +152,82 @@ class Usuario {
         return await db.collection(COLECAO).updateOne(
             { _id: new ObjectId(id) },
             { $set: { lastLoginAt: new Date() } }
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: salvarTokenRedefinicao(id, token, expireEm)
+    // PROPÓSITO: Armazena o token de redefinição de senha
+    // ========================================================
+    static async salvarTokenRedefinicao(id, token, expiraEm) { //recebe 3 coisas: o ID do usuário, o token gerado, e a data/hora em que ele expira.
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne( //"encontre o usuário com esse ID". O new ObjectId(id) é necessário porque no MongoDB o _id não é uma string comum — é um tipo especial chamado ObjectId. Por isso todos os métodos do arquivo fazem essa conversão.
+            {_id: new ObjectId(id)}, 
+            {$set: {resetToken: token, resetTokenExpira: expiraEm, updatedAt: new Date()}} //  "grave esses 3 campos". O updatedAt é atualizado em todo método, seguindo o padrão do arquivo.
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: buscarPorTokenRedefinicao(token)
+    // PROPÓSITO: Busca usuário por token de redefinição válido
+    // ========================================================
+    static async buscarPorTokenRedefinicao(token) {
+        const db = getBanco();
+        return await db.collection(COLECAO).findOne({ //"encontre o usuário cujo resetToken seja igual a este token".
+            resetToken: token,
+            resetTokenExpira: {$gt: new Date() } //$gt significa "maior que" (greater than). Ou seja: "o campo resetTokenExpira deve ser maior que agora". Se o token expirou, a data de validade é menor que agora, e o findOne não encontra ninguém → retorna null.
+            }
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: limparTokenRedefinicao(id)
+    // PROPÓSITO: Remove o token após a redefinição ser concluída
+    // ========================================================
+    static async limparTokenRedefinicao(id) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            {_id: new ObjectId(id)},
+            {$unset: {resetToken: '', resetTokenExpira: ''}, $set: {updatedAt: new Date()}} //remove os dois campos do documento. O valor '' é ignorado — o $unset só se importa com o nome do campo. / $set: { updatedAt: new Date() } → mantém o padrão de atualizar o timestamp.
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: salvarCodigoConfirmacao()
+    // PROPÓSITO: Salvar o codigo enviado por email na hora da criacao da conta
+    // ========================================================
+
+    static async salvarCodigoConfirmacao(id, codigoHash, expiraEm) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+        { _id: new ObjectId(id) },
+        { $set: {codigoConfirmacaoHash: codigoHash, codigoConfirmacaoExpira: expiraEm, codigoTentativas: 0, updatedAt: new Date()}} // $set atualiza um campo no mongodb, caso nao exista, cria.
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: limparCodigoConfirmacao(id)
+    // PROPÓSITO: Remove o codigo e o contador apos a confirmacao
+    // ========================================================
+
+    static async limparCodigoConfirmacao(id){
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            {_id: new ObjectId(id)},
+            { $unset: { codigoConfirmacaoHash: '', codigoConfirmacaoExpira: '', codigoTentativas: '' }, $set: { updatedAt: new Date() } } // remove o campo do documento. O valor '' é ignorado, só o nome importa.
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: incrementarTentativas(id)
+    // PROPÓSITO: Contador de tentativas
+    // ========================================================
+
+    static async incrementarTentativas(id) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(id) },
+            { $inc: { codigoTentativas: 1 } } //$inc — incrementa um número.
         );
     }
 
@@ -162,7 +288,7 @@ class Usuario {
     // ========================================================
     static sanitizar(usuario) {
         if (!usuario) return null;
-        const { senhaHash, ...dadosSeguros } = usuario;
+        const { senhaHash, codigoConfirmacaoHash, codigoConfirmacaoExpira, codigoTentativas, ...dadosSeguros } = usuario;
         return dadosSeguros;
     }
 }

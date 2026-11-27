@@ -154,6 +154,15 @@ function preencherFormulario(veiculo) {
     document.getElementById('kmMensal').value = veiculo.kmMensal || '';
 }
 
+// Quando o usuário altera o KM atual manualmente, considera que a leitura é de hoje.
+// É uma conferência manual no veículo, então o sistema deve recalcular a partir desse KM novo,
+// sem somar o KM rodado desde a data de leitura antiga.
+document.getElementById('kmAtual').addEventListener('input', () => {
+    const hoje = new Date();
+    const hojeISO = hoje.toISOString().slice(0, 10);
+    document.getElementById('dataLeitura').value = hojeISO;
+});
+
 // carrega os intervalos já salvos no banco e permite alterar:
 // intervalo em KM;
 // intervalo em meses;
@@ -394,6 +403,30 @@ form.addEventListener('submit', async event => {
     } catch (erro) {
         console.error('Erro ao atualizar veículo.', erro);
         alert('Erro de conexão ao atualizar veículo');               
+    }
+});
+
+document.getElementById('btnExcluir').addEventListener('click', async () => {
+    const confirmar = window.confirm(
+        `Tem certeza que deseja excluir "${veiculoAtual?.apelido || 'este veículo'}"? Essa ação é permanente.`
+    );
+
+    if (!confirmar) return;
+
+    try {
+        const resposta = await fetch(`/api/vehicles/${veiculoId}`, { method: 'DELETE' });
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            alert(dados.message || 'Erro ao excluir veículo.');
+            return;
+        }
+
+        alert('Veículo excluído com sucesso!');
+        window.location.href = './index.html';
+    } catch (erro) {
+        console.error('Erro ao excluir veículo.', erro);
+        alert('Erro de conexão ao excluir veículo.');
     }
 });
 

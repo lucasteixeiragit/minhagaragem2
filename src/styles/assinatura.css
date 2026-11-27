@@ -1,0 +1,197 @@
+/* ============================================================
+   ARQUIVO: styles/assinatura.css
+   DESCRIÇÃO: Estilos da tela de assinatura (assinatura.html)
+   ============================================================
+   USADO POR: assinatura.html
+   DEPENDE DE: styles/style.css (header, body e variáveis de cor)
+   ============================================================ */
+
+.main {
+    padding: 40px 6% 80px;
+    box-sizing: border-box;
+}
+
+.assinatura__titulo {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 2.4rem;
+    letter-spacing: 1.2px;
+    color: oklch(0.96 0.01 140);
+    margin-bottom: 8px;
+}
+
+.assinatura__motivo {
+    color: oklch(0.75 0.02 260);
+    font-family: "Inter", sans-serif;
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+}
+
+.assinatura__card {
+    background-color: oklch(0.16 0.008 280);
+    border: 2px solid oklch(0.26 0.012 265);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 640px;
+    margin-bottom: 24px;
+    box-sizing: border-box;
+}
+
+.assinatura__resumo {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.assinatura__rotulo {
+    display: block;
+    font-family: "Inter", sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: oklch(0.62 0.02 260);
+    margin-bottom: 4px;
+}
+
+.assinatura__plano {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+}
+
+.assinatura__plano--free {
+    color: oklch(0.75 0.02 260);
+}
+
+.assinatura__plano--pro {
+    color: oklch(0.62 0.22 25);
+}
+
+.assinatura__vencimento {
+    font-family: "Inter", sans-serif;
+    font-size: 0.95rem;
+    color: oklch(0.9 0.01 140);
+}
+
+.assinatura__beneficios {
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.assinatura__beneficio {
+    font-family: "Inter", sans-serif;
+    font-size: 0.95rem;
+    color: oklch(0.9 0.01 140);
+    padding-left: 20px;
+    position: relative;
+}
+
+.assinatura__beneficio::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: oklch(0.62 0.22 25);
+}
+
+.assinatura__preco {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 20px;
+}
+
+.assinatura__preco__valor {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+    color: oklch(0.96 0.01 140);
+}
+
+.assinatura__preco__obs {
+    font-family: "Inter", sans-serif;
+    font-size: 0.8rem;
+    color: oklch(0.62 0.02 260);
+}
+
+.assinatura__botao {
+    width: 100%;
+    border: 2px solid oklch(0.26 0.012 265);
+    background: oklch(0.62 0.22 25);
+    color: oklch(0.96 0.01 140);
+    font-family: "Inter", sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 14px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.assinatura__botao:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.assinatura__mensagem {
+    font-family: "Inter", sans-serif;
+    font-size: 0.9rem;
+    margin-top: 16px;
+}
+
+.assinatura__mensagem--erro {
+    color: oklch(0.62 0.22 25);
+}
+
+.assinatura__mensagem--sucesso {
+    color: oklch(0.75 0.16 150);
+}
+
+.assinatura__subtitulo {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+    color: oklch(0.96 0.01 140);
+    margin-bottom: 12px;
+}
+
+.assinatura__historico__item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: "Inter", sans-serif;
+    font-size: 0.9rem;
+    color: oklch(0.9 0.01 140);
+    padding: 10px 0;
+    border-bottom: 1px solid oklch(0.26 0.012 265);
+}
+
+.assinatura__historico__status {
+    color: oklch(0.62 0.02 260);
+}
+
+.assinatura__vazio {
+    font-family: "Inter", sans-serif;
+    font-size: 0.9rem;
+    color: oklch(0.62 0.02 260);
+}
+
+/* ===================== RESPONSIVO ====================== */
+@media (max-width: 600px) {
+    .main {
+        padding: 24px 5% 60px;
+    }
+
+    .assinatura__card {
+        padding: 18px;
+    }
+
+    .assinatura__resumo {
+        gap: 20px;
+    }
+
+    .assinatura__titulo {
+        font-size: 2rem;
+    }
+}

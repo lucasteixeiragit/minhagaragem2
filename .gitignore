@@ -1,3 +1,6 @@
 node_modules
 .env
 .abacusai
+
+# Arquivos temporarios do Microsoft Office (Word, Excel, PowerPoint)
+~$*

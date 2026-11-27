@@ -315,6 +315,12 @@ form.addEventListener("submit", async (event) => {
         const data = await res.json();
 
         if (!res.ok) {
+            // LIMITE_PLANO = o servidor barrou por causa do plano FREE
+            // (middleware/plano.js). Leva o usuário direto à assinatura.
+            if (data.codigo === 'LIMITE_PLANO') {
+                window.location.href = './assinatura.html?motivo=veiculo';
+                return;
+            }
             alert(data.message || 'Erro ao salvar veículo.');
             submitBtn.disabled = false;
             submitBtn.textContent = 'Adicionar';

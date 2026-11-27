@@ -6,8 +6,10 @@
     <title>Login - Minha Garagem</title>
     <link rel="stylesheet" href="styles/auth.css">
     <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="./styles/responsive.css">
     <link rel="icon" type="image/png" href="assets/favicons/favicon.png">
 </head>
+
 <body>
     <header class="header">
         <div class="header__div">
@@ -19,39 +21,45 @@
                 </span>
                 MINHA GARAGEM
             </a>
+            <button class="header__toggle" id="btnMenu" type="button" aria-label="Abrir menu" aria-expanded="false">&#9776;</button>
             <nav class="header__nav">
                 <a class="header__nav__addVeicle" href="register.html">Criar conta</a>
             </nav>
         </div>
     </header>
 
-    <main class="auth-container">
-        <div class="auth-card">
+    <main class="auth__container">
+        <div class="auth__card">
             <h1>Bem-vindo de volta</h1>
-            <p class="subtitle">Entre para gerenciar sua garagem</p>
+            <p class="auth__subtitle">Entre para gerenciar sua garagem</p>
 
-            <div id="alert" class="alert alert-error"></div>
+            <div id="alert" class="alert__box alert__error"></div>
 
             <form id="loginForm">
-                <div class="form-group">
+                <div class="form__group">
                     <label for="email">E-mail</label>
                     <input type="email" id="email" name="email" placeholder="seu@email.com" required autocomplete="email">
                 </div>
 
-                <div class="form-group">
+                <div class="form__group">
                     <label for="senha">Senha</label>
                     <input type="password" id="senha" name="senha" placeholder="Sua senha" required autocomplete="current-password">
                 </div>
 
-                <button type="submit" class="btn-primary" id="btnLogin">Entrar</button>
+                <button type="submit" class="btn__primary" id="btnLogin">Entrar</button>
             </form>
 
-            <div class="auth-links">
+            <div class="auth__links">
                 Não tem uma conta? <a href="register.html">Cadastre-se</a>
+            </div>
+
+            <div class="auth__password">
+                Esqueceu sua senha? <a href="recPass.html">Recupere aqui</a>
             </div>
         </div>
     </main>
 
     <script type="module" src="./js/login.js"></script>
+    <script src="./js/header-menu.js"></script>
 </body>
 </html>

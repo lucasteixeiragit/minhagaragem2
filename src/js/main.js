@@ -13,6 +13,9 @@
 // Importa função de cálculo de próximas manutenções
 import { calcularKmAtualEstimado, calcularProximasManutencoes } from './manutencao-utils.js';
 
+// Importa o helper do plano: usado no aviso de recurso pago da garagem
+import { carregarPlano, montarAvisoUpgrade } from './plano.js';
+
 // ============================================================
 // FUNÇÕES DE ACESSO À API
 // ============================================================
@@ -302,4 +305,29 @@ async function renderizarGaragem() {
     renderizarAlertasResumo();
 }
 
+// ============================================================
+// FUNÇÃO: renderizarAvisoPlano()
+// ============================================================
+// Mostra, na garagem, que adicionar mais veículos é recurso do plano Pro.
+// Só aparece para plano FREE que já tem 1 veículo (o limite do gratuito).
+// DEPENDE DE: js/plano.js (carregarPlano, montarAvisoUpgrade)
+// USADO POR: index.html, no elemento #avisoPlanoGaragem
+async function renderizarAvisoPlano() {
+    const container = document.getElementById('avisoPlanoGaragem');
+    if (!container) return;
+
+    const status = await carregarPlano();
+    if (!status || status.plano === 'PRO') return;
+
+    const veiculos = await getVeiculos();
+    if (!veiculos || veiculos.length < 1) return;
+
+    container.appendChild(montarAvisoUpgrade({
+        titulo: 'Adicionar mais veículos é um recurso Pro',
+        texto: 'O plano gratuito guarda 1 veículo. Assine o Pro para registrar toda a garagem.'
+    }));
+    container.hidden = false;
+}
+
 renderizarGaragem();
+renderizarAvisoPlano();

@@ -13,6 +13,33 @@
 
 import { calcularKmAtualEstimado, calcularProximasManutencoes, getStatusColor, getStatusText } from './manutencao-utils.js';
 
+// Importa o helper do plano: usado no aviso de nota fiscal (recurso Pro)
+import { carregarPlano, montarAvisoUpgrade } from './plano.js';
+
+// ============================================================
+// FUNÇÃO: aplicarGateNotaFiscalNosAlertas(container)
+// PROPÓSITO: No plano FREE, avisa dentro de cada card de alerta que a
+// nota fiscal é recurso Pro e desabilita o input de arquivo.
+// O servidor também descarta o anexo (routes/maintenance.routes.js),
+// então desabilitar evita o usuário anexar algo que seria ignorado.
+// USADO POR: renderização dos alertas desta mesma página
+// ============================================================
+async function aplicarGateNotaFiscalNosAlertas(container) {
+    const status = await carregarPlano();
+    if (!status || status.plano === 'PRO') return;
+
+    container.querySelectorAll('.alerta__form').forEach(formulario => {
+        const campo = formulario.querySelector('input[name="notaFiscal"]');
+        if (!campo) return;
+
+        campo.disabled = true;
+        campo.parentElement.insertBefore(montarAvisoUpgrade({
+            titulo: 'Nota fiscal é um recurso Pro',
+            texto: 'No plano gratuito a manutenção é salva sem o anexo.'
+        }), campo);
+    });
+}
+
 // ============================================================
 // FUNÇÕES DE ACESSO À API
 // ============================================================
@@ -51,6 +78,8 @@ async function excluirManutencao(veiculoId, manutencaoId) {
             alert(data.message || 'Erro ao excluir manutenção.');
             return;
         }
+
+        veiculo.manutencoes = veiculo.manutencoes.filter(m => m.id !== manutencaoId); // atualiza pagina apos exclusao
         // Re-renderiza listas
         renderizarManutencoes();
         renderizarAlertas();
@@ -150,6 +179,7 @@ const dataReferencia = obterDataReferencia();
         window.location.href = './index.html'
     })
 
+    await carregarNotificacoes();
     renderizarAlertas();
     renderizarManutencoes();
     renderizarProximaRevisao();
@@ -175,10 +205,134 @@ function formatarMoeda(valor) {
     });
 }
 
+//Encontra o intervalo preventivo que corresponde o tipo da manutencao
+function encontrarIntervalo(manutencao, veiculo) {
+    const intervalos = veiculo.intervalosManutencoesPreventivas || {}; // transforma objeto em array pois .find procura arrays
+    return Object.values(intervalos).find(i => 
+        i.nome && manutencao.tipo && (i.nome.toLowerCase().includes(manutencao.tipo.toLowerCase()) || //.find procura o nome da manutencao e o tipo, //.includes pergunta se o nome do intervalo contem o tipo da manutencao
+    manutencao.tipo.toLowerCase().includes(i.nome.toLowerCase())) //segunda comparacao
+    ) || null;
+}
+
+//Calcula a proxima data somando intervalomeses a data da manutencao
+function calcularProximaData(manutencao, intervalo){ //recebe manutencao e o intervalo dela
+    if (!intervalo || !intervalo.intervaloMeses) return null; //Se não existe intervalo OU se não existe um intervalo em meses, não é possível calcular a próxima data
+    const data = new Date(manutencao.data + 'T00:00:00'); //Transformando a data em um objeto Date
+    data.setMonth(data.getMonth() + intervalo.intervaloMeses); //pega o mes da data e soma o intervalo
+    return data.toISOString().slice(0, 10); // toISOString() transforma a data em um formato semelhante a: 2027-08-20 com .slice que limita em 10 caracteres
+}
+
+function calcularProximoKm(manutencao, intervalo) {
+    if (!intervalo || !intervalo.intervaloKm) return null; //Se não existe intervalo OU se não existe um intervalo em meses, não é possível calcular a próxima data
+    const km = parseInt(manutencao.km) || 0; // transforma KM em int
+    return km + intervalo.intervaloKm;
+};
 // ============================================================
 // FUNÇÃO: renderizarAlertas()
 // ============================================================
 // Renderiza seção de alertas de manutenção (atrasadas, urgentes, em breve)
+// Escapa texto vindo do banco antes de injetar em innerHTML (evita XSS)
+function escaparHTML(valor) {
+    return String(valor ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// Notificações pendentes do usuário, indexadas pelo tipo da manutenção.
+// Usadas para saber quais alertas foram adiados e qual notificação concluir.
+let notificacoesPorTipo = {};
+
+// Controla se os alertas adiados estão sendo exibidos na lista
+let mostrarAdiados = false;
+
+// Busca as notificações pendentes na API e monta o índice por tipo
+async function carregarNotificacoes() {
+    try {
+        const res = await fetch('/api/notificacoes');
+        if (!res.ok) return;
+
+        const dados = await res.json();
+        const lista = dados.notificacoes || [];
+
+        notificacoesPorTipo = {};
+        for (const notificacao of lista) {
+            notificacoesPorTipo[notificacao.tipo] = notificacao;
+        }
+    } catch (erro) {
+        // Sem notificações a página continua funcionando, apenas sem adiar/concluir
+        console.error('Erro ao carregar notificações:', erro);
+    }
+}
+
+// Converte um arquivo em string Base64 para envio junto da manutenção
+function arquivoParaBase64(arquivo) {
+    return new Promise((resolve, reject) => {
+        const leitor = new FileReader();
+        leitor.onload = () => resolve(leitor.result);
+        leitor.onerror = () => reject(new Error('Falha ao ler o arquivo'));
+        leitor.readAsDataURL(arquivo);
+    });
+}
+
+// Registra a manutenção concluída e encerra a notificação correspondente
+async function concluirManutencao(tipo, dados) {
+    const res = await fetch(`/api/vehicles/${veiculoId}/maintenance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...dados, tipo })
+    });
+
+    const resposta = await res.json();
+    if (!res.ok) {
+        throw new Error(resposta.message || 'Erro ao registrar manutenção.');
+    }
+
+    // Se existir notificação pendente para este tipo, marca como concluída
+    const notificacao = notificacoesPorTipo[tipo];
+    if (notificacao && notificacao._id) {
+        await fetch(`/api/notificacoes/${notificacao._id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ acao: 'concluir' })
+        });
+    }
+}
+
+// Adia a notificação: o card fica oculto até a data escolhida
+async function adiarNotificacao(tipo, novaData) {
+    const notificacao = notificacoesPorTipo[tipo];
+
+    // Sem notificação pendente (o cron ainda não rodou), cria uma já adiada.
+    // Sem esse caminho o botão Adiar falharia em alertas recém-vencidos.
+    if (!notificacao || !notificacao._id) {
+        const resCriacao = await fetch('/api/notificacoes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ veiculoId: veiculo._id, tipo, dataVencimento: novaData })
+        });
+
+        const respostaCriacao = await resCriacao.json();
+        if (!resCriacao.ok) {
+            throw new Error(respostaCriacao.message || 'Erro ao adiar notificação.');
+        }
+        return;
+    }
+
+    const res = await fetch(`/api/notificacoes/${notificacao._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ acao: 'adiar', novaData })
+    });
+
+    const resposta = await res.json();
+    if (!res.ok) {
+        throw new Error(resposta.message || 'Erro ao adiar notificação.');
+    }
+}
+
 function renderizarAlertas() {
     const alertasSection = document.getElementById('alertasSection');
     const alertasLista = document.getElementById('alertasLista');
@@ -189,9 +343,53 @@ function renderizarAlertas() {
     }
 
     const proximasManutencoes = calcularProximasManutencoes(veiculo, dataReferencia);
-    const alertas = proximasManutencoes.filter(m => m.status !== 'ok');
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
 
-    if (alertas.length === 0) {
+    // Separa os alertas em visíveis e adiados: um alerta adiado fica oculto
+    // até a data escolhida, mas precisa continuar acessível para poder voltar
+    const alertasTodos = proximasManutencoes.filter(m => m.status !== 'ok');
+    const estaAdiado = alerta => {
+        const notificacao = notificacoesPorTipo[alerta.nome];
+        if (!notificacao || !notificacao.dataVencimento) return false;
+
+        // Compara apenas a data, ignorando a hora, senão um alerta
+        // adiado para hoje seria escondido pelo horário atual
+        const dataNotificacao = new Date(notificacao.dataVencimento);
+        dataNotificacao.setHours(0, 0, 0, 0);
+        return dataNotificacao > hoje;
+    };
+
+    const adiados = alertasTodos.filter(estaAdiado);
+    const visiveis = alertasTodos.filter(a => !estaAdiado(a));
+    const alertas = mostrarAdiados ? alertasTodos : visiveis;
+
+    // Linha de resumo dos adiados, com botão para revelar ou esconder
+    const alertasAdiados = document.getElementById('alertasAdiados');
+    if (adiados.length > 0) {
+        const proximaData = adiados
+            .map(a => new Date(notificacoesPorTipo[a.nome].dataVencimento))
+            .sort((a, b) => a - b)[0];
+        // Formata em UTC: a data é gravada à meia-noite UTC, então o fuso local
+        // (UTC-3) mostraria o dia anterior
+        const dataFormatada = proximaData.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+        alertasAdiados.style.display = 'block';
+        alertasAdiados.innerHTML = `
+            <span class="alertas__adiados__texto">${adiados.length} alerta(s) adiado(s) até ${dataFormatada}</span>
+            <button type="button" class="alertas__adiados__btn" id="btnMostrarAdiados">
+                ${mostrarAdiados ? 'Ocultar' : 'Mostrar'}
+            </button>
+        `;
+        document.getElementById('btnMostrarAdiados').addEventListener('click', () => {
+            mostrarAdiados = !mostrarAdiados;
+            renderizarAlertas();
+        });
+    } else {
+        alertasAdiados.style.display = 'none';
+        alertasAdiados.innerHTML = '';
+    }
+
+    if (alertas.length === 0 && adiados.length === 0) {
         alertasSection.style.display = 'none';
         return;
     }
@@ -201,7 +399,8 @@ function renderizarAlertas() {
     alertasLista.innerHTML = alertas.map(alerta => {
         const statusColor = getStatusColor(alerta.status);
         const statusText = getStatusText(alerta.status);
-        
+        const tipoEscapado = escaparHTML(alerta.nome);
+
         let mensagem = '';
         if (alerta.kmRestantes <= 0) {
             mensagem = `⚠️ Esta manutenção está <strong>atrasada em ${Math.abs(alerta.kmRestantes)} km</strong>!`;
@@ -210,25 +409,173 @@ function renderizarAlertas() {
         }
 
         return `
-            <div class="alerta__card alerta__card--${alerta.status}">
+            <div class="alerta__card alerta__card--${alerta.status}" data-tipo="${tipoEscapado}">
                 <div class="alerta__header">
-                    <h3 class="alerta__titulo">${alerta.nome}</h3>
+                    <h3 class="alerta__titulo">${tipoEscapado}</h3>
                     <span class="alerta__badge" style="background: ${statusColor}; color: oklch(0.96 0.01 140);">
                         ${statusText}
                     </span>
                 </div>
                 <p class="alerta__info">${mensagem}</p>
                 <p class="alerta__info" style="font-size: 0.75rem; margin-top: 4px;">
-                    ${alerta.descricao} • Intervalo: ${alerta.intervaloKm.toLocaleString('pt-BR')} km
+                    ${escaparHTML(alerta.descricao)} • Intervalo: ${alerta.intervaloKm.toLocaleString('pt-BR')} km
                 </p>
                 <div class="alerta__barra__container">
                     <div class="alerta__barra__fundo">
                         <div class="alerta__barra__progresso" style="width: ${alerta.percentualCompleto}%; background: ${statusColor};"></div>
                     </div>
                 </div>
+
+                <div class="alerta__acoes">
+                    <button type="button" class="alerta__btn alerta__btn--concluir" data-tipo="${tipoEscapado}">Concluir</button>
+                    <button type="button" class="alerta__btn alerta__btn--adiar" data-tipo="${tipoEscapado}">Adiar</button>
+                </div>
+
+                <form class="alerta__form" data-tipo="${tipoEscapado}" style="display:none;">
+                    <p class="alerta__form__titulo">Dados do serviço realizado</p>
+
+                    <div class="alerta__form__campo">
+                        <label>Data do serviço *</label>
+                        <input type="date" class="alerta__form__input" name="data" required>
+                    </div>
+
+                    <div class="alerta__form__campo">
+                        <label>KM</label>
+                        <input type="number" class="alerta__form__input" name="km" value="${calcularKmAtualEstimado(veiculo, dataReferencia)}">
+                    </div>
+
+                    <div class="alerta__form__campo">
+                        <label>Custo (R$)</label>
+                        <input type="number" class="alerta__form__input" name="custo" step="0.01" placeholder="Ex.: 350,00">
+                    </div>
+
+                    <div class="alerta__form__campo">
+                        <label>Observações</label>
+                        <textarea class="alerta__form__input" name="descricao" rows="2" placeholder="Peças trocadas, oficina, marca do óleo..."></textarea>
+                    </div>
+
+                    <div class="alerta__form__campo">
+                        <label>Nota fiscal (opcional)</label>
+                        <input type="file" class="alerta__form__input" name="notaFiscal" accept="image/*,application/pdf">
+                    </div>
+
+                    <div class="alerta__form__acoes">
+                        <button type="submit" class="alerta__btn alerta__btn--salvar">Salvar manutenção</button>
+                        <button type="button" class="alerta__btn alerta__btn--cancelar">Cancelar</button>
+                    </div>
+                </form>
+
+                <div class="alerta__adiar" style="display:none;">
+                    <label class="alerta__adiar__label">Ocultar este alerta até:</label>
+                    <input type="date" class="alerta__form__input alerta__adiar__data">
+                    <div class="alerta__form__acoes">
+                        <button type="button" class="alerta__btn alerta__btn--confirmar-adiar">Confirmar</button>
+                        <button type="button" class="alerta__btn alerta__btn--cancelar-adiar">Cancelar</button>
+                    </div>
+                </div>
             </div>
         `;
     }).join('');
+
+    // Liga os botões Concluir: abre o formulário inline do card
+    alertasLista.querySelectorAll('.alerta__btn--concluir').forEach(botao => {
+        botao.addEventListener('click', () => {
+            const card = botao.closest('.alerta__card');
+            card.querySelector('.alerta__form').style.display = 'block';
+            card.querySelector('.alerta__adiar').style.display = 'none';
+            card.querySelector('.alerta__acoes').style.display = 'none';
+        });
+    });
+
+    // Liga os botões Adiar: abre o seletor de data inline
+    alertasLista.querySelectorAll('.alerta__btn--adiar').forEach(botao => {
+        botao.addEventListener('click', () => {
+            const card = botao.closest('.alerta__card');
+            card.querySelector('.alerta__adiar').style.display = 'block';
+            card.querySelector('.alerta__form').style.display = 'none';
+            card.querySelector('.alerta__acoes').style.display = 'none';
+        });
+    });
+
+    // Cancelar volta o card ao estado inicial
+    alertasLista.querySelectorAll('.alerta__btn--cancelar, .alerta__btn--cancelar-adiar').forEach(botao => {
+        botao.addEventListener('click', () => {
+            const card = botao.closest('.alerta__card');
+            card.querySelector('.alerta__form').style.display = 'none';
+            card.querySelector('.alerta__adiar').style.display = 'none';
+            card.querySelector('.alerta__acoes').style.display = 'flex';
+        });
+    });
+
+    // Envio do formulário de conclusão
+    alertasLista.querySelectorAll('.alerta__form').forEach(formulario => {
+        formulario.addEventListener('submit', async (evento) => {
+            evento.preventDefault();
+
+            const tipo = formulario.dataset.tipo;
+            const dados = new FormData(formulario);
+            const botaoSalvar = formulario.querySelector('.alerta__btn--salvar');
+
+            if (!dados.get('data')) {
+                alert('Informe a data do serviço.');
+                return;
+            }
+
+            botaoSalvar.disabled = true;
+            botaoSalvar.textContent = 'Salvando...';
+
+            try {
+                const arquivo = formulario.querySelector('input[name="notaFiscal"]').files[0];
+                const notaFiscal = arquivo ? await arquivoParaBase64(arquivo) : null;
+
+                await concluirManutencao(tipo, {
+                    data: dados.get('data'),
+                    km: dados.get('km') || null,
+                    custo: dados.get('custo') || null,
+                    descricao: dados.get('descricao') || '',
+                    notaFiscal,
+                    notaFiscalNome: arquivo ? arquivo.name : null
+                });
+
+                window.location.reload();
+            } catch (erro) {
+                alert(erro.message);
+                botaoSalvar.disabled = false;
+                botaoSalvar.textContent = 'Salvar manutenção';
+            }
+        });
+    });
+
+    // Aviso de nota fiscal no plano FREE: o servidor descarta o anexo
+    // (routes/maintenance.routes.js), então o campo é desabilitado aqui.
+    // DEPENDE DE: js/plano.js (carregarPlano, montarAvisoUpgrade)
+    aplicarGateNotaFiscalNosAlertas(alertasLista);
+
+    // Confirmação do adiamento
+    alertasLista.querySelectorAll('.alerta__btn--confirmar-adiar').forEach(botao => {
+        botao.addEventListener('click', async () => {
+            const card = botao.closest('.alerta__card');
+            const tipo = card.dataset.tipo;
+            const campoData = card.querySelector('.alerta__adiar__data');
+
+            if (!campoData.value) {
+                alert('Escolha até quando o alerta deve ficar oculto.');
+                return;
+            }
+
+            botao.disabled = true;
+            botao.textContent = 'Adiando...';
+
+            try {
+                await adiarNotificacao(tipo, campoData.value);
+                window.location.reload();
+            } catch (erro) {
+                alert(erro.message);
+                botao.disabled = false;
+                botao.textContent = 'Confirmar';
+            }
+        });
+    });
 }
 
 function renderizarManutencoes() {
@@ -252,7 +599,7 @@ function renderizarManutencoes() {
         if (manutencao.notaFiscal) {
             notaHTML = `
                 <div class="manutencao__card__nota">
-                    <a href="${manutencao.notaFiscal}" target="_blank" class="btn__nota">
+                    <a href="/api/vehicles/${veiculoId}/maintenance/${manutencao.id}/nota-fiscal" target="_blank" class="btn__nota">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
                         </svg>
@@ -262,12 +609,25 @@ function renderizarManutencoes() {
             `;
         }
 
+        const intervalo = encontrarIntervalo(manutencao, veiculo);
+        const proximaData = calcularProximaData(manutencao, intervalo);
+        const proximoKm = calcularProximoKm(manutencao, intervalo);
+
+        const proximaHTML = (proximaData || proximoKm) ? `
+            <div class="manutencao__card__info__item">
+                <span class="manutencao__card__info__label">Próxima:</span>
+                ${proximaData ? formatarData(proximaData) : '—'}
+                ${proximoKm ? ` / ${proximoKm.toLocaleString('pt-BR')} km` : ''}
+            </div>
+        ` : '';
+
         return `
             <div class="manutencao__card">
                 <div class="manutencao__card__header">
                     <h3 class="manutencao__card__tipo">${manutencao.tipo}</h3>
                     <div style="display: flex; gap: 12px; align-items: center;">
                         ${manutencao.custo ? `<span class="manutencao__card__custo">${formatarMoeda(manutencao.custo)}</span>` : ''}
+                        <button class="btn__editar__manutencao" data-id="${manutencao.id}">Editar</button>
                         <button class="btn__excluir__manutencao" data-id="${manutencao.id}">Excluir</button>
                     </div>
                 </div>
@@ -280,6 +640,7 @@ function renderizarManutencoes() {
                         <span class="manutencao__card__info__label">KM:</span>
                         ${manutencao.km || '-'}
                     </div>
+                    ${proximaHTML}
                 </div>
                 ${manutencao.descricao ? `<div class="manutencao__card__descricao">${manutencao.descricao}</div>` : ''}
                 ${notaHTML}
@@ -293,6 +654,12 @@ function renderizarManutencoes() {
             if (confirmar) {
                 excluirManutencao(veiculoId, botao.dataset.id);
             }
+        });
+    });
+
+    manutencoesLista.querySelectorAll('.btn__editar__manutencao').forEach(botao => {
+        botao.addEventListener('click', () => {
+            window.location.href = `./manutencao-editar.html?veiculoId=${veiculoId}&manutencaoId=${botao.dataset.id}`;
         });
     });
 }
@@ -329,7 +696,7 @@ function renderizarProximaRevisao() {
             : null;
 
         mensagem.innerHTML =
-            `Próxima revisão aos ` +
+            `Próxima revisão: <strong>${proxima.nome}</strong> aos ` +
             `<strong>${proxima.kmProximaManutencao.toLocaleString('pt-BR')} km</strong>. ` +
             `Faltam ` +
             `<strong>${proxima.kmRestantes.toLocaleString('pt-BR')} km</strong>` +
@@ -338,8 +705,8 @@ function renderizarProximaRevisao() {
 
     detalhes.textContent =
         `Última revisão: ${
-            proxima.ultimaManutencao
-                ? `KM ${Number(proxima.ultimaManutencao.km).toLocaleString('pt-BR')}`
+            proxima.ultimaManutencao        
+                ? `${proxima.nome} — KM ${Number(proxima.ultimaManutencao.km).toLocaleString('pt-BR')}`
                 : 'nenhuma registrada'
         } • Intervalo: ${Number(proxima.intervaloKm).toLocaleString('pt-BR')} km`;
 };

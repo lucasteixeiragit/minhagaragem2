@@ -48,6 +48,8 @@ import vinculosRoutes from './routes/vinculos.routes.js';
 
 // Importa as rotas públicas de mecânicas (listagem para o cliente escolher)
 import mechanicsRoutes from './routes/mechanics.routes.js';
+import notificacaoRoutes from './routes/notificacao.routes.js';
+import pagamentoRoutes from './routes/pagamento.routes.js';
 
 // Importa a configuração de sessão (cookie HttpOnly + store MongoDB)
 import { configurarSessao } from './config/session.js';
@@ -79,6 +81,11 @@ const __dirname = path.dirname(__filename);
 // Este objeto 'app' é o núcleo da aplicação web
 const app = express();
 
+// Confia no primeiro proxy (nginx) para ler o IP real e o protocolo original.
+// SEM ISSO: req.secure é sempre false atrás do nginx, o cookie Secure é
+// descartado pelo navegador e o login "volta" para a tela de login.
+// DEPENDE DE: nginx enviando X-Forwarded-Proto (ver /etc/nginx/sites-enabled).
+// USADO POR: configurarSessao() em config/session.js (cookie secure).
 app.set('trust proxy', 1);
 // ============================================================
 // CONFIGURACOES DO EXPRESS
@@ -91,6 +98,44 @@ app.set('trust proxy', 1);
 // MIDDLEWARES GLOBAIS
 // ============================================================
 // Middlewares são funções que processam requisições antes de chegarem às rotas
+
+// MIDDLEWARE 0: CORS (Cross-Origin Resource Sharing)
+// ============================================================
+// PROPÓSITO: autorizar o navegador a chamar a API a partir das origens do site.
+// POR QUE PRECISA: origem = protocolo + host + porta. Trocar o domínio cria uma
+// origem nova, e sem este cabeçalho o navegador bloqueia a resposta do fetch.
+// POR QUE NÃO USA '*': com credentials: true (cookie de sessão) o navegador
+// recusa o curinga; é obrigatório devolver a origem exata que pediu.
+// LIDO DE: APP_URL e APP_URL_LEGADO no .env (nunca fixos no código).
+// USADO POR: todos os fetch() do frontend em src/js/*.js.
+// ============================================================
+const ORIGENS_PERMITIDAS = [
+    process.env.APP_URL,
+    'https://www.minhagaragem.net',
+    process.env.APP_URL_LEGADO
+].filter(Boolean); // remove chaves ausentes do .env (undefined)
+
+app.use((req, res, next) => {
+    const origem = req.headers.origin;
+
+    // Só devolve os cabeçalhos quando a origem está na lista branca.
+    // Origem desconhecida segue sem cabeçalho e o navegador bloqueia sozinho.
+    if (origem && ORIGENS_PERMITIDAS.includes(origem)) {
+        res.setHeader('Access-Control-Allow-Origin', origem);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+        // Vary evita que cache intermediário sirva a resposta de uma origem para outra
+        res.setHeader('Vary', 'Origin');
+    }
+
+    // Preflight: o navegador pergunta antes do método real; responde e encerra
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204);
+    }
+
+    next();
+});
 
 // MIDDLEWARE 1: express.json()
 // ============================================================
@@ -135,6 +180,20 @@ app.use(express.static(path.join(__dirname, '..')));
 //   - Store em MongoDB (sessões sobrevivem a reinícios)
 // ============================================================
 app.use(configurarSessao());
+
+// ROTA: /api/pagamento
+// ============================================================
+// APONTA PARA: routes/pagamento.routes.js
+// ENDPOINTS DISPONÍVEIS:
+//   - POST /api/pagamento/assinar → Teste de 7 dias ou link de checkout
+//   - POST /api/pagamento/webhook → Notificação da InfinitePay
+//   - GET  /api/pagamento/status → Plano, vencimento e histórico
+// SEGURANÇA: o webhook não usa requireAuth (quem chama é o gateway) e
+// confirma o pagamento por /payment_check, já que não há assinatura.
+// MONTADO ANTES DO limitadorGeral DE PROPÓSITO: um pico de pagamentos
+// legítimos tomaria 429 e o plano não seria ativado. O limite de /assinar
+// é aplicado dentro do próprio router.
+app.use('/api/pagamento', pagamentoRoutes);
 
 // MIDDLEWARE 5: Rate limiting geral
 // ============================================================
@@ -250,6 +309,15 @@ app.use('/api/vinculos', vinculosRoutes);
 //   - GET /api/mechanics/public → Lista mecânicas ativas (id/nome/email)
 // SEGURANÇA: Qualquer usuário autenticado; nunca retorna senhaHash
 app.use('/api/mechanics', mechanicsRoutes);
+
+// ROTA: /api/notificacoes
+// ============================================================
+// APONTA PARA: routes/notificacao.routes.js
+// ENDPOINTS DISPONÍVEIS:
+//   - GET   /api/notificacoes → Listar notificações pendentes do usuário
+//   - PATCH /api/notificacoes/:id → Concluir ou adiar notificação
+// SEGURANÇA: Autenticação obrigatória; só altera notificação do próprio usuário
+app.use('/api/notificacoes', notificacaoRoutes);
 
 // ============================================================
 // ROTA RAIZ (HOME DA API)

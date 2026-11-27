@@ -312,6 +312,15 @@ class Veiculo {
             .toArray();
     }
 
+    // Conta quantos veículos o proprietário tem
+    // USADO POR: routes/vehicle.routes.js no POST, para aplicar o limite
+    // do plano gratuito (1 veículo). Sem esta contagem o limite não existe.
+    static async contarDoProprietario(ownerId) {
+        const db = getBanco();
+        return await db.collection(COLECAO)
+            .countDocuments({ ownerId: new ObjectId(ownerId) });
+    }
+
     // Busca um veículo garantindo que pertence ao proprietário
     static async buscarPorIdEProprietario(id, ownerId) {
         const db = getBanco();
@@ -370,6 +379,38 @@ class Veiculo {
                 $pull: { manutencoes: { id: manutencaoId } },
                 $set: { atualizadoEm: new Date() }
             }
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: atualizarManutencao(veiculoId, manutencaoId, campos)
+    // ========================================================
+    // PROPÓSITO: Atualiza os campos de uma manutenção específica
+    // OPERADOR $: Posicional — atualiza o elemento do array que
+    //              corresponde ao filtro "manutencoes.id"
+    // ========================================================
+    static async atualizarManutencao(veiculoId, manutencaoId, campos) {
+        const db = getBanco();
+        const set = { atualizadoEm: new Date() };
+        Object.entries(campos).forEach(([campo, valor]) => {
+            set[`manutencoes.$.${campo}`] = valor;
+        });
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(veiculoId), 'manutencoes.id': manutencaoId },
+            { $set: set }
+        );
+    }
+
+    // Atualiza manutenção garantindo que o veículo pertence ao proprietário
+    static async atualizarManutencaoDoProprietario(veiculoId, ownerId, manutencaoId, campos) {
+        const db = getBanco();
+        const set = { atualizadoEm: new Date() };
+        Object.entries(campos).forEach(([campo, valor]) => {
+            set[`manutencoes.$.${campo}`] = valor;
+        });
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(veiculoId), ownerId: new ObjectId(ownerId), 'manutencoes.id': manutencaoId },
+            { $set: set }
         );
     }
 

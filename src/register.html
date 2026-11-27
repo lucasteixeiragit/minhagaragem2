@@ -6,6 +6,7 @@
     <title>Cadastro - Minha Garagem</title>
     <link rel="stylesheet" href="styles/auth.css">
     <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="./styles/responsive.css">
     <link rel="icon" type="image/png" href="assets/favicons/favicon.png">
 </head>
 <body>
@@ -19,49 +20,72 @@
                 </span>
                 MINHA GARAGEM
             </a>
+            <button class="header__toggle" id="btnMenu" type="button" aria-label="Abrir menu" aria-expanded="false">&#9776;</button>
             <nav class="header__nav">
                 <a class="header__nav__addVeicle" href="login.html">Já tenho conta</a>
             </nav>
         </div>
     </header>
 
-    <main class="auth-container">
-        <div class="auth-card">
+    <main class="auth__container">
+        <div class="auth__card">
             <h1>Criar conta</h1>
-            <p class="subtitle">Comece a gerenciar seus veículos</p>
+            <p class="auth__subtitle">Comece a gerenciar seus veículos</p>
 
-            <div id="alert" class="alert alert-error"></div>
+            <div id="alert" class="alert__box alert__error"></div>
 
             <form id="registerForm">
-                <div class="form-group">
+                <div class="form__group">
                     <label for="nome">Nome</label>
                     <input type="text" id="nome" name="nome" placeholder="Seu nome" required minlength="2" autocomplete="name">
                 </div>
 
-                <div class="form-group">
+                <div class="form__group">
                     <label for="email">E-mail</label>
                     <input type="email" id="email" name="email" placeholder="seu@email.com" required autocomplete="email">
                 </div>
 
-                <div class="form-group">
+                <div class="form__group">
                     <label for="senha">Senha</label>
                     <input type="password" id="senha" name="senha" placeholder="Mínimo 8 caracteres" required minlength="8" autocomplete="new-password">
                 </div>
 
-                <div class="form-group">
+                <div class="form__group">
                     <label for="confirmarSenha">Confirmar senha</label>
                     <input type="password" id="confirmarSenha" name="confirmarSenha" placeholder="Repita a senha" required minlength="8" autocomplete="new-password">
                 </div>
 
-                <button type="submit" class="btn-primary" id="btnRegister">Criar conta</button>
+                <button type="submit" class="btn__primary" id="btnRegister">Criar conta</button>
             </form>
 
-            <div class="auth-links">
+            <form id="confirmForm" style="display:none;">
+                <!-- Preenchido pelo JS com o e-mail que recebeu o código -->
+                <p class="auth__subtitle" id="confirmInfo"></p>
+
+                <div class="form__group">
+                    <label for="codigo">Código de confirmação</label>
+                    <!-- inputmode=numeric abre teclado numérico no celular;
+                         autocomplete=one-time-code permite o preenchimento automático
+                         do código recebido por email; pattern valida 6 dígitos no cliente -->
+                    <input type="text" id="codigo" name="codigo" placeholder="000000" inputmode="numeric"
+                        maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" required>
+                </div>
+
+                <button type="submit" class="btn__primary" id="btnConfirmar">Confirmar cadastro</button>
+                <!-- type=button evita que estes botões disparem o submit do formulário -->
+                <button type="button" class="btn__primary" id="btnReenviar"
+                    style="background:transparent;border:1px solid oklch(0.3 0.01 280);">Reenviar código</button>
+                <button type="button" class="btn__primary" id="btnVoltarCadastro"
+                    style="background:transparent;border:1px solid oklch(0.3 0.01 280);">Voltar</button>
+            </form>
+
+            <div class="auth__links">
                 Já tem uma conta? <a href="login.html">Entrar</a>
             </div>
         </div>
     </main>
 
     <script type="module" src="./js/register.js"></script>
+    <script src="./js/header-menu.js"></script>
 </body>
 </html>

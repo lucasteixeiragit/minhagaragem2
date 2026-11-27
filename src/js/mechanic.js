@@ -3,8 +3,8 @@ const alertEl = document.getElementById('alert');
 
 function mostrarAlerta(mensagem, tipo = 'error') {
     alertEl.textContent = mensagem;
-    alertEl.className = `alert alert-${tipo} show`;
-    setTimeout(() => { alertEl.className = 'alert'; }, 4000);
+    alertEl.className = `alert__box alert__${tipo} alert__box--show`;
+    setTimeout(() => { alertEl.className = 'alert__box'; }, 4000);
 }
 
 // A autorização real é feita pelo middleware/backend; esta checagem apenas orienta a navegação.
@@ -47,14 +47,14 @@ async function carregarVeiculos() {
 
         data.veiculos.forEach((veiculo) => {
             const card = document.createElement('div');
-            card.className = 'vehicle-card';
+            card.className = 'vehicle__card';
             card.innerHTML = `
-                <div class="vehicle-info">
+                <div class="vehicle__info">
                     <h3>${veiculo.apelido || 'Veículo'}</h3>
                     <p>${veiculo.marca || ''} ${veiculo.modelo || ''} ${veiculo.versao || ''} • ${veiculo.ano || ''} • ${veiculo.placa || 'Sem placa'}</p>
                     <p>KM atual: ${veiculo.kmAtual || 0} km</p>
                 </div>
-                <button class="btn-primary" style="width: auto; padding: 10px 20px; margin: 0;" onclick="verDetalhes('${veiculo._id}')">
+                <button class="btn__primary" style="width: auto; padding: 10px 20px; margin: 0;" onclick="verDetalhes('${veiculo._id}')">
                     Ver detalhes
                 </button>
             `;

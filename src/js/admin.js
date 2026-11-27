@@ -3,8 +3,8 @@ const alertEl = document.getElementById('alert');
 
 function mostrarAlerta(mensagem, tipo = 'error') {
     alertEl.textContent = mensagem;
-    alertEl.className = `alert alert-${tipo} show`;
-    setTimeout(() => { alertEl.className = 'alert'; }, 4000);
+    alertEl.className = `alert__box alert__${tipo} alert__box--show`;
+    setTimeout(() => { alertEl.className = 'alert__box'; }, 4000);
 }
 
 function formatarData(iso) {
@@ -43,12 +43,12 @@ document.getElementById('btnLogout').addEventListener('click', async (event) => 
 });
 
 // Alterna somente a apresentação dos painéis; as operações continuam na API.
-document.querySelectorAll('.admin-tab').forEach((tab) => {
+document.querySelectorAll('.admin__tab').forEach((tab) => {
     tab.addEventListener('click', () => {
-        document.querySelectorAll('.admin-tab').forEach((item) => item.classList.remove('active'));
-        document.querySelectorAll('.admin-panel').forEach((panel) => panel.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+        document.querySelectorAll('.admin__tab').forEach((item) => item.classList.remove('admin__tab--active'));
+        document.querySelectorAll('.admin__panel').forEach((panel) => panel.classList.remove('admin__panel--active'));
+        tab.classList.add('admin__tab--active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('admin__panel--active');
     });
 });
 
@@ -66,18 +66,18 @@ async function carregarUsuarios() {
             tr.innerHTML = `
                 <td>${usuario.nome}</td>
                 <td>${usuario.email}</td>
-                <td><span class="role-badge ${usuario.role}">${usuario.role}</span></td>
+                <td><span class="role__badge ${usuario.role}">${usuario.role}</span></td>
                 <td>${usuario.ativo ? '<span style="color: oklch(0.75 0.12 150);">Ativo</span>' : '<span style="color: oklch(0.75 0.15 25);">Bloqueado</span>'}</td>
                 <td>
-                    <select class="btn-small" onchange="alterarRole('${usuario._id}', this.value)">
+                    <select class="btn__small" onchange="alterarRole('${usuario._id}', this.value)">
                         <option value="USER" ${usuario.role === 'USER' ? 'selected' : ''}>USER</option>
                         <option value="MECANICA" ${usuario.role === 'MECANICA' ? 'selected' : ''}>MECANICA</option>
                         <option value="ADMIN" ${usuario.role === 'ADMIN' ? 'selected' : ''}>ADMIN</option>
                     </select>
-                    <button class="btn-small ${usuario.ativo ? 'danger' : 'success'}" onclick="alterarStatus('${usuario._id}', ${!usuario.ativo})">
+                    <button class="btn__small ${usuario.ativo ? 'btn__small--danger' : 'btn__small--success'}" onclick="alterarStatus('${usuario._id}', ${!usuario.ativo})">
                         ${usuario.ativo ? 'Bloquear' : 'Ativar'}
                     </button>
-                    <button class="btn-small danger" onclick="excluirUsuario('${usuario._id}')">Excluir</button>
+                    <button class="btn__small btn__small--danger" onclick="excluirUsuario('${usuario._id}')">Excluir</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -208,10 +208,10 @@ async function carregarAtendimentos() {
             tr.innerHTML = `
                 <td>${atendimento.mechanicId || '-'}</td>
                 <td>${atendimento.vehicleId || '-'}</td>
-                <td><span class="role-badge ${atendimento.status === 'aberto' ? 'USER' : atendimento.status === 'concluido' ? 'MECANICA' : 'ADMIN'}">${atendimento.status}</span></td>
+                <td><span class="role__badge ${atendimento.status === 'aberto' ? 'USER' : atendimento.status === 'concluido' ? 'MECANICA' : 'ADMIN'}">${atendimento.status}</span></td>
                 <td>
-                    <button class="btn-small success" onclick="alterarStatusAtendimento('${atendimento._id}', 'concluido')">Concluir</button>
-                    <button class="btn-small danger" onclick="alterarStatusAtendimento('${atendimento._id}', 'cancelado')">Cancelar</button>
+                    <button class="btn__small btn__small--success" onclick="alterarStatusAtendimento('${atendimento._id}', 'concluido')">Concluir</button>
+                    <button class="btn__small btn__small--danger" onclick="alterarStatusAtendimento('${atendimento._id}', 'cancelado')">Cancelar</button>
                 </td>
             `;
             tbody.appendChild(tr);

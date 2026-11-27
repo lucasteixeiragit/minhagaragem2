@@ -101,7 +101,11 @@ export function configurarSessao() {
             httpOnly: true,
             secure: isProducao, // true apenas em HTTPS/produção
             sameSite: 'lax',
-            maxAge: 15 * 60 * 1000 // 15 dias inatividade usuario é deslogado
+            // 8 horas de inatividade. Com rolling: true (acima) o prazo é
+            // renovado a cada requisição, então o usuário só é deslogado
+            // depois de 8 horas sem acessar nada.
+            // USADO POR: session-guard.js no frontend, que trata o 401.
+            maxAge: 8 * 60 * 60 * 1000
         }
     });
 }
