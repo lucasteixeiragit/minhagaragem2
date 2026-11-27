@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" sizes="1020x1020"  href="./assets/favicons/favicon.png">
 </head>
 
-<body>
+<body data-plano-gate="veiculo">
 
     <!--===================== HEADER ======================-->
 <header class="header">
@@ -39,6 +39,9 @@
     <!--===================== MAIN / FORM ======================-->
     <main class="main">
         <h1 class="form__title">NOVO VEÍCULO</h1>
+
+        <!-- Aviso de recurso pago preenchido por js/plano-ui.js -->
+        <div class="upgrade-aviso__container" id="avisoPlano" hidden></div>
 
         <form class="form__card" id="formNovoVeiculo">
             <div class="form__layout">
@@ -182,6 +185,8 @@
             });
         </script> -->
         <script type="module" src="./js/session-menu.js"></script>
+        <!-- Mostra o aviso de limite do plano FREE (js/plano-ui.js) -->
+        <script type="module" src="./js/plano-ui.js"></script>
     <script src="./js/header-menu.js"></script>
 </body>
 </html>

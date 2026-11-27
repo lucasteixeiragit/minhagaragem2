@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" sizes="1020x1020"  href="./assets/favicons/favicon.png">
 </head>
 
-<body>
+<body data-plano-gate="nota-fiscal">
 
     <!--===================== HEADER ======================-->
     <header class="header">
@@ -89,6 +89,8 @@
 
             <div class="form__field">
                 <label class="form__label" for="notaFiscal">NOTA FISCAL (OPCIONAL)</label>
+                <!-- Aviso de recurso pago preenchido por js/plano-ui.js -->
+                <div class="upgrade-aviso__container upgrade-aviso__container--campo" id="avisoNotaFiscal" hidden></div>
                 <div class="file__upload">
                     <input type="file" id="notaFiscal" name="notaFiscal" accept="image/*,application/pdf" style="display:none;">
                     <button type="button" class="btn__upload" id="btnUpload">
@@ -114,6 +116,8 @@
     <!--===================== FOOTER ======================-->
     <script type="module" src="./js/manutencao-editar.js"></script>
     <script type="module" src="./js/session-guard.js"></script>
+    <!-- Mostra o aviso de nota fiscal do plano FREE (js/plano-ui.js) -->
+    <script type="module" src="./js/plano-ui.js"></script>
     <script src="./js/header-menu.js"></script>
 </body>
 </html>

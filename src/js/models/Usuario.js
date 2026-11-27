@@ -10,6 +10,9 @@
 //   senhaHash: String (bcrypt),
 //   role: "USER" | "MECANICA" | "ADMIN",
 //   ativo: Boolean,
+//   plano: "FREE" | "PRO",
+//   planoExpiraEm: Date | null,
+//   trialUsado: Boolean,
 //   createdAt: Date,
 //   updatedAt: Date,
 //   lastLoginAt: Date
@@ -68,6 +71,11 @@ class Usuario {
             senhaHash,
             role,
             ativo,
+            // Todo usuário nasce no plano gratuito, sem prazo e sem teste usado.
+            // LIDO POR: middleware/plano.js (planoAtivo) e routes/pagamento.routes.js
+            plano: 'FREE',
+            planoExpiraEm: null,
+            trialUsado: false,
             createdAt: agora,
             updatedAt: agora,
             lastLoginAt: null
@@ -84,6 +92,42 @@ class Usuario {
         return await db.collection(COLECAO).updateOne(
             { _id: new ObjectId(id) },
             { $set: { ...dados, updatedAt: new Date() } }
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: atualizarPlano(id, { plano, planoExpiraEm })
+    // PROPÓSITO: Define o plano do usuário e até quando ele vale
+    // CHAMADO POR: routes/pagamento.routes.js (ativação do trial e
+    // confirmação de pagamento no webhook)
+    // LIDO POR: middleware/plano.js, que decide o que o usuário acessa
+    // ========================================================
+    static async atualizarPlano(id, { plano, planoExpiraEm }) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { plano, planoExpiraEm, updatedAt: new Date() } }
+        );
+    }
+
+    // ========================================================
+    // MÉTODO: marcarTrialUsado(id, expiraEm)
+    // PROPÓSITO: Concede o teste de 7 dias e registra que já foi usado
+    // REGRA: só pode ser chamado uma vez por usuário; a checagem de
+    // trialUsado fica na rota, que lê o documento antes
+    // ========================================================
+    static async marcarTrialUsado(id, expiraEm) {
+        const db = getBanco();
+        return await db.collection(COLECAO).updateOne(
+            { _id: new ObjectId(id) },
+            {
+                $set: {
+                    plano: 'PRO',
+                    planoExpiraEm: expiraEm,
+                    trialUsado: true,
+                    updatedAt: new Date()
+                }
+            }
         );
     }
 

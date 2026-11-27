@@ -312,6 +312,15 @@ class Veiculo {
             .toArray();
     }
 
+    // Conta quantos veículos o proprietário tem
+    // USADO POR: routes/vehicle.routes.js no POST, para aplicar o limite
+    // do plano gratuito (1 veículo). Sem esta contagem o limite não existe.
+    static async contarDoProprietario(ownerId) {
+        const db = getBanco();
+        return await db.collection(COLECAO)
+            .countDocuments({ ownerId: new ObjectId(ownerId) });
+    }
+
     // Busca um veículo garantindo que pertence ao proprietário
     static async buscarPorIdEProprietario(id, ownerId) {
         const db = getBanco();

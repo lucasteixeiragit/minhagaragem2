@@ -13,6 +13,7 @@
 import express from 'express';
 import Veiculo from '../models/Veiculo.js';
 import { requireAuth } from '../middleware/auth.js';
+import { limitarVeiculos } from '../middleware/plano.js';
 import { registrarAuditoria } from '../utils/audit.js';
 import { verificarVinculoAtivo, obterVeiculosAcessiveisParaMecanica } from '../utils/authorization.js';
 
@@ -111,8 +112,11 @@ router.get('/:id', requireAuth, async (req, res) => {
 // ============================================================
 // POST /api/vehicles
 // PROPÓSITO: Cria um veículo vinculado ao usuário autenticado
+// PLANO: limitarVeiculos aplica o limite do plano gratuito (1 veículo).
+// Sem esse middleware o limite não existe, porque o frontend sozinho
+// não impede uma chamada direta à API.
 // ============================================================
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, limitarVeiculos, async (req, res) => {
     try {
         const dados = extrairCamposVeiculo(req.body);
 

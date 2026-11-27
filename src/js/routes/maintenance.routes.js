@@ -10,6 +10,7 @@ import express from 'express';
 import Veiculo from '../models/Veiculo.js';
 import Notificacao from '../models/Notificacao.js';
 import { requireAuth } from '../middleware/auth.js';
+import { podeAnexarNotaFiscal } from '../middleware/plano.js';
 import { registrarAuditoria } from '../utils/audit.js';
 import { verificarAcessoManutencao, verificarAcessoVeiculo } from '../utils/authorization.js';
 
@@ -45,6 +46,16 @@ router.post('/', requireAuth, async (req, res) => {
 
         if (!dados.data || !dados.tipo) {
             return res.status(400).json({ success: false, message: 'Data e tipo são obrigatórios.' });
+        }
+
+        // PLANO: o anexo de nota fiscal é recurso do Pro. No FREE a
+        // manutenção é salva normalmente, só que sem o anexo — rejeitar a
+        // requisição inteira puniria o usuário por um campo opcional.
+        // LIDO POR: veiculo-detalhes.js, que mostra o aviso de upgrade.
+        const anexoPermitido = podeAnexarNotaFiscal(req.user);
+        if (!anexoPermitido) {
+            delete dados.notaFiscal;
+            delete dados.notaFiscalNome;
         }
 
         let ownerId;
@@ -87,7 +98,11 @@ router.post('/', requireAuth, async (req, res) => {
             userAgent: req.get('user-agent')
         });
 
-        res.status(201).json({ success: true, message: 'Manutenção adicionada.' });
+        res.status(201).json({
+            success: true,
+            message: 'Manutenção adicionada.',
+            anexoRemovido: !anexoPermitido
+        });
     } catch (error) {
         console.error('Erro ao adicionar manutenção:', error);
         res.status(500).json({ success: false, message: 'Erro ao adicionar manutenção.' });
@@ -155,6 +170,14 @@ router.delete('/:manutencaoId', requireAuth, async (req, res) => {
 router.put('/:manutencaoId', requireAuth, async (req, res) => {
     try {
         const dados = extrairCamposManutencao(req.body);
+
+        // PLANO: mesma regra do POST. Sem esta checagem o usuário FREE
+        // contornaria o limite anexando a nota por uma edição.
+        const anexoPermitido = podeAnexarNotaFiscal(req.user);
+        if (!anexoPermitido) {
+            delete dados.notaFiscal;
+            delete dados.notaFiscalNome;
+        }
 
         if (Object.keys(dados).length === 0) {
             return res.status(400).json({ success: false, message: 'Nenhum campo para atualizar.' });

@@ -195,3 +195,81 @@ body {
             font-family: "Inter", sans-serif;
             margin-top: 12px;
         }
+
+    /* ===================== AVISO DE RECURSO PAGO ====================== */
+    /* USADO POR: js/plano.js (montarAvisoUpgrade) em index.html,
+       veiculo-novo.html, manutencao-nova.html e manutencao-editar.html.
+       Fica no style.css porque é carregado por todas essas páginas. */
+
+    .upgrade-aviso__container {
+        margin: 16px 6%;
+    }
+
+    /* Variante usada dentro de um campo de formulário (nota fiscal) */
+    .upgrade-aviso__container--campo {
+        margin: 0 0 12px;
+    }
+
+    .upgrade-aviso {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        box-sizing: border-box;
+        background-color: oklch(0.16 0.008 280);
+        border: 2px solid oklch(0.62 0.22 25);
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .upgrade-aviso__selo {
+        flex-shrink: 0;
+        background-color: oklch(0.62 0.22 25);
+        color: oklch(0.96 0.01 140);
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1rem;
+        letter-spacing: 1px;
+        padding: 4px 10px;
+        border-radius: 6px;
+    }
+
+    .upgrade-aviso__corpo {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .upgrade-aviso__titulo {
+        font-family: "Inter", sans-serif;
+        font-size: 1rem;
+        color: oklch(0.96 0.01 140);
+    }
+
+    .upgrade-aviso__texto {
+        font-family: "Inter", sans-serif;
+        font-size: 0.9rem;
+        color: oklch(0.75 0.02 260);
+    }
+
+    .upgrade-aviso__botao {
+        align-self: flex-start;
+        border: 2px solid oklch(0.26 0.012 265);
+        background: oklch(0.62 0.22 25);
+        color: oklch(0.96 0.01 140);
+        font-family: "Inter", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        padding: 10px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+        .upgrade-aviso {
+            flex-direction: column;
+        }
+
+        .upgrade-aviso__container {
+            margin: 16px 5%;
+        }
+    }

@@ -57,6 +57,12 @@ async function iniciarServidor() {
         // A função conectarBanco() está em config/database.js
         await conectarBanco();
 
+        // Índice único em assinaturas.orderNsu: garante idempotência do
+        // webhook de pagamento, que pode chegar mais de uma vez.
+        // USADO POR: models/Assinatura.js e routes/pagamento.routes.js
+        const { default: Assinatura } = await import('./models/Assinatura.js');
+        await Assinatura.garantirIndices();
+
         // PASSO 2: Inicia o servidor HTTP
         // ============================================================
         // app.listen() vincula o servidor à porta especificada

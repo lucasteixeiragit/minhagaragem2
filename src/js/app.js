@@ -49,6 +49,7 @@ import vinculosRoutes from './routes/vinculos.routes.js';
 // Importa as rotas públicas de mecânicas (listagem para o cliente escolher)
 import mechanicsRoutes from './routes/mechanics.routes.js';
 import notificacaoRoutes from './routes/notificacao.routes.js';
+import pagamentoRoutes from './routes/pagamento.routes.js';
 
 // Importa a configuração de sessão (cookie HttpOnly + store MongoDB)
 import { configurarSessao } from './config/session.js';
@@ -172,6 +173,20 @@ app.use(express.static(path.join(__dirname, '..')));
 //   - Store em MongoDB (sessões sobrevivem a reinícios)
 // ============================================================
 app.use(configurarSessao());
+
+// ROTA: /api/pagamento
+// ============================================================
+// APONTA PARA: routes/pagamento.routes.js
+// ENDPOINTS DISPONÍVEIS:
+//   - POST /api/pagamento/assinar → Teste de 7 dias ou link de checkout
+//   - POST /api/pagamento/webhook → Notificação da InfinitePay
+//   - GET  /api/pagamento/status → Plano, vencimento e histórico
+// SEGURANÇA: o webhook não usa requireAuth (quem chama é o gateway) e
+// confirma o pagamento por /payment_check, já que não há assinatura.
+// MONTADO ANTES DO limitadorGeral DE PROPÓSITO: um pico de pagamentos
+// legítimos tomaria 429 e o plano não seria ativado. O limite de /assinar
+// é aplicado dentro do próprio router.
+app.use('/api/pagamento', pagamentoRoutes);
 
 // MIDDLEWARE 5: Rate limiting geral
 // ============================================================

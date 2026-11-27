@@ -13,6 +13,33 @@
 
 import { calcularKmAtualEstimado, calcularProximasManutencoes, getStatusColor, getStatusText } from './manutencao-utils.js';
 
+// Importa o helper do plano: usado no aviso de nota fiscal (recurso Pro)
+import { carregarPlano, montarAvisoUpgrade } from './plano.js';
+
+// ============================================================
+// FUNÇÃO: aplicarGateNotaFiscalNosAlertas(container)
+// PROPÓSITO: No plano FREE, avisa dentro de cada card de alerta que a
+// nota fiscal é recurso Pro e desabilita o input de arquivo.
+// O servidor também descarta o anexo (routes/maintenance.routes.js),
+// então desabilitar evita o usuário anexar algo que seria ignorado.
+// USADO POR: renderização dos alertas desta mesma página
+// ============================================================
+async function aplicarGateNotaFiscalNosAlertas(container) {
+    const status = await carregarPlano();
+    if (!status || status.plano === 'PRO') return;
+
+    container.querySelectorAll('.alerta__form').forEach(formulario => {
+        const campo = formulario.querySelector('input[name="notaFiscal"]');
+        if (!campo) return;
+
+        campo.disabled = true;
+        campo.parentElement.insertBefore(montarAvisoUpgrade({
+            titulo: 'Nota fiscal é um recurso Pro',
+            texto: 'No plano gratuito a manutenção é salva sem o anexo.'
+        }), campo);
+    });
+}
+
 // ============================================================
 // FUNÇÕES DE ACESSO À API
 // ============================================================
@@ -518,6 +545,11 @@ function renderizarAlertas() {
             }
         });
     });
+
+    // Aviso de nota fiscal no plano FREE: o servidor descarta o anexo
+    // (routes/maintenance.routes.js), então o campo é desabilitado aqui.
+    // DEPENDE DE: js/plano.js (carregarPlano, montarAvisoUpgrade)
+    aplicarGateNotaFiscalNosAlertas(alertasLista);
 
     // Confirmação do adiamento
     alertasLista.querySelectorAll('.alerta__btn--confirmar-adiar').forEach(botao => {
