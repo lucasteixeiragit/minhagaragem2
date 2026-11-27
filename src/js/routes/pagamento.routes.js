@@ -175,6 +175,14 @@ router.post('/webhook', async (req, res) => {
         const transactionNsu = corpo.transaction_nsu;
         const slug = corpo.slug || corpo.invoice_slug;
 
+        // A nossa ID volta no eco de items[].product_reference, gravada na
+        // criação do link por criarLinkPagamento(). É o casamento por
+        // identidade: diz de quem é a cobrança, sem depender do valor.
+        // LIDO DE: services/infinitepayService.js (criarLinkPagamento).
+        const productReference = Array.isArray(corpo.items) && corpo.items[0]
+            ? corpo.items[0].product_reference
+            : null;
+
         // Log do corpo completo: sem ele não é possível reconciliar um
         // pagamento cujo order_nsu não exista na coleção assinaturas.
         // Não há dado sensível aqui (sem cartão, sem documento).
@@ -189,6 +197,16 @@ router.post('/webhook', async (req, res) => {
         // casamento principal é pelo slug da fatura (invoice_slug), que
         // guardamos na criação do link, e o order_nsu fica como alternativa.
         let assinatura = await Assinatura.buscarPorOrderNsu(orderNsu);
+
+        // Casamento por identidade: o product_reference ecoado é o nosso
+        // order_nsu, então identifica a cobrança e o usuário sem ambiguidade.
+        if (!assinatura && productReference) {
+            assinatura = await Assinatura.buscarPorOrderNsu(productReference);
+
+            if (assinatura) {
+                console.log('Webhook casado por product_reference:', productReference);
+            }
+        }
 
         if (!assinatura) {
             assinatura = await Assinatura.buscarPorSlug(slug);

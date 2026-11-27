@@ -55,7 +55,13 @@ export async function criarLinkPagamento({ orderNsu, valorCentavos, descricao })
             {
                 quantity: 1,
                 price: valorCentavos,
-                description: descricao
+                description: descricao,
+                // Identificador próprio que a InfinitePay ecoa de volta no
+                // webhook, dentro de items[].product_reference. É o único
+                // canal que devolve a nossa ID: o order_nsu é substituído
+                // por um UUID do gateway e o invoice_slug não é o slug do
+                // link. LIDO POR: routes/pagamento.routes.js (webhook).
+                product_reference: orderNsu
             }
         ],
         order_nsu: orderNsu,
