@@ -14,8 +14,13 @@
 //   - routes/maintenance.routes.js → anexo de nota fiscal só no PRO
 // ============================================================
 
-// Preço e duração ficam aqui para não haver número solto no código
-export const PRECO_CENTAVOS = 2000; // R$ 20,00
+// Preço e duração ficam aqui para não haver número solto no código.
+// PRECO_CENTAVOS aceita override por variável de ambiente para permitir
+// testar o fluxo completo com valor baixo sem alterar o código. Em
+// produção a variável não existe e vale o padrão de R$ 20,00.
+// LIDO POR: routes/pagamento.routes.js (criação do link e conferência do
+// valor no webhook) e GET /api/pagamento/status (exibição no perfil).
+export const PRECO_CENTAVOS = Number(process.env.PRECO_CENTAVOS) || 2000; // R$ 20,00
 export const DIAS_ASSINATURA = 30;
 export const DIAS_TRIAL = 7;
 export const LIMITE_VEICULOS_FREE = 1;

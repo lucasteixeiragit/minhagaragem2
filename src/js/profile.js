@@ -54,6 +54,100 @@ function formatarData(iso) {
     }
 })();
 
+// ============================================================
+// SEÇÃO: Meu Plano
+// PROPÓSITO: mostra plano, vencimento, teste e histórico de
+// pagamentos no perfil.
+// FONTE: GET /api/pagamento/status, a mesma rota usada por
+// src/assinatura.html e por js/plano.js (gate de recursos pagos).
+// ============================================================
+function formatarMoeda(centavos) {
+    if (centavos === null || centavos === undefined) return '-';
+    return (Number(centavos) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+// Traduz o status gravado em Assinatura para o rótulo e a cor da tabela.
+function rotuloStatus(status) {
+    const chave = String(status || '').toLowerCase();
+    if (['pago', 'paid', 'approved', 'aprovado', 'settled'].includes(chave)) {
+        return { texto: 'Pago', classe: 'plano__status--pago' };
+    }
+    if (['pendente', 'pending', 'aguardando'].includes(chave)) {
+        return { texto: 'Pendente', classe: 'plano__status--pendente' };
+    }
+    return { texto: status || '-', classe: 'plano__status--outro' };
+}
+
+function renderizarHistorico(historico) {
+    const alvo = document.getElementById('planoHistorico');
+    if (!alvo) return;
+
+    if (!historico || historico.length === 0) {
+        alvo.innerHTML = '<p class="plano__vazio">Nenhum pagamento registrado ainda.</p>';
+        return;
+    }
+
+    const linhas = historico.map(item => {
+        const rotulo = rotuloStatus(item.status);
+        return `<tr>
+            <td>${formatarData(item.criadoEm)}</td>
+            <td>${formatarMoeda(item.valorCentavos)}</td>
+            <td><span class="plano__status ${rotulo.classe}">${rotulo.texto}</span></td>
+            <td>${item.pagoEm ? formatarData(item.pagoEm) : '-'}</td>
+        </tr>`;
+    }).join('');
+
+    alvo.innerHTML = `<table class="plano__tabela">
+        <thead>
+            <tr><th>Data</th><th>Valor</th><th>Status</th><th>Pago em</th></tr>
+        </thead>
+        <tbody>${linhas}</tbody>
+    </table>`;
+}
+
+(async function carregarPlano() {
+    try {
+        const res = await fetch('/api/pagamento/status');
+        if (!res.ok) return;
+
+        const dados = await res.json();
+        const ehPro = dados.plano === 'PRO';
+
+        const selo = document.getElementById('planoSelo');
+        selo.textContent = ehPro ? 'PRO' : 'FREE';
+        selo.className = ehPro ? 'plano__selo' : 'plano__selo plano__selo--free';
+
+        document.getElementById('planoSituacao').textContent = ehPro
+            ? 'Assinatura ativa'
+            : 'Sem assinatura ativa';
+
+        document.getElementById('planoVencimento').textContent = ehPro && dados.planoExpiraEm
+            ? `Vence em ${formatarData(dados.planoExpiraEm)}`
+            : 'Assine para liberar todos os recursos';
+
+        document.getElementById('planoNome').textContent = ehPro ? 'Pro' : 'Gratuito';
+        document.getElementById('planoVenceEm').textContent = dados.planoExpiraEm
+            ? formatarData(dados.planoExpiraEm)
+            : '-';
+        document.getElementById('planoTrial').textContent = dados.trialUsado
+            ? 'Já utilizado'
+            : `Disponível (${dados.diasTrial} dias)`;
+        document.getElementById('planoPreco').textContent =
+            `${formatarMoeda(dados.precoCentavos)} / ${dados.diasAssinatura} dias`;
+
+        // O rótulo do botão muda conforme o estado, mas o destino é sempre a
+        // tela de assinatura, que decide entre trial, checkout e "já ativo".
+        const acao = document.getElementById('planoAcao');
+        acao.textContent = ehPro ? 'Renovar assinatura' : 'Assinar o Pro';
+        acao.href = './assinatura.html';
+
+        renderizarHistorico(dados.historico);
+    } catch (error) {
+        const alvo = document.getElementById('planoHistorico');
+        if (alvo) alvo.innerHTML = '<p class="plano__vazio">Não foi possível carregar o plano.</p>';
+    }
+})();
+
 // Encerra a sessão no servidor antes de voltar para a tela de login.
 document.getElementById('btnLogout').addEventListener('click', async (event) => {
     event.preventDefault();

@@ -201,8 +201,11 @@ body {
        veiculo-novo.html, manutencao-nova.html e manutencao-editar.html.
        Fica no style.css porque é carregado por todas essas páginas. */
 
+    /* O container acompanha a largura da lista de veículos (.main__list),
+       que ocupa toda a área de conteúdo do <main>. Sem margem lateral aqui,
+       o aviso fica com a mesma borda esquerda e direita dos cards. */
     .upgrade-aviso__container {
-        margin: 16px 6%;
+        margin: 16px 0;
     }
 
     /* Variante usada dentro de um campo de formulário (nota fiscal) */
@@ -270,6 +273,6 @@ body {
         }
 
         .upgrade-aviso__container {
-            margin: 16px 5%;
+            margin: 16px 0;
         }
     }

@@ -59,6 +59,47 @@
         </div>
 
         <div class="profile__card">
+            <h2>Meu Plano</h2>
+
+            <!-- Preenchido por js/profile.js a partir de GET /api/pagamento/status.
+                 O mesmo endpoint alimenta src/assinatura.html e o gate de
+                 recursos pagos em js/plano.js. -->
+            <div class="plano__resumo">
+                <div class="plano__selo" id="planoSelo">-</div>
+                <div class="plano__detalhe">
+                    <div class="plano__situacao" id="planoSituacao">Carregando...</div>
+                    <div class="plano__vencimento" id="planoVencimento"></div>
+                </div>
+            </div>
+
+            <div class="profile__info plano__info">
+                <div class="info__item">
+                    <div class="info__label">Plano atual</div>
+                    <div class="info__value" id="planoNome">-</div>
+                </div>
+                <div class="info__item">
+                    <div class="info__label">Vencimento</div>
+                    <div class="info__value" id="planoVenceEm">-</div>
+                </div>
+                <div class="info__item">
+                    <div class="info__label">Teste de 7 dias</div>
+                    <div class="info__value" id="planoTrial">-</div>
+                </div>
+                <div class="info__item">
+                    <div class="info__label">Valor da renovação</div>
+                    <div class="info__value" id="planoPreco">-</div>
+                </div>
+            </div>
+
+            <a class="btn__primary plano__acao" id="planoAcao" href="./assinatura.html">Gerenciar assinatura</a>
+
+            <h3 class="plano__historico__titulo">Histórico de pagamentos</h3>
+            <div class="plano__historico" id="planoHistorico">
+                <p class="plano__vazio">Carregando histórico...</p>
+            </div>
+        </div>
+
+        <div class="profile__card">
             <h2>Alterar Nome</h2>
             <form id="formNome">
                 <div class="form__group">

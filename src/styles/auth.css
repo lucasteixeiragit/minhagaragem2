@@ -284,6 +284,161 @@ body {
     font-weight: 600;
 }
 
+/* ========================== MEU PLANO ======================== */
+/* Usado em profile.html, seção preenchida por js/profile.js.
+   O selo reaproveita a linguagem visual de .upgrade-aviso__selo. */
+.plano__resumo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background-color: oklch(0.2 0.01 280);
+    border: 1px solid oklch(0.3 0.01 280);
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 16px;
+}
+
+.plano__selo {
+    flex-shrink: 0;
+    background-color: oklch(0.62 0.22 25);
+    color: oklch(0.96 0.01 140);
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    padding: 6px 14px;
+    border-radius: 6px;
+}
+
+/* Plano gratuito usa cinza, para o vermelho significar sempre "Pro ativo". */
+.plano__selo--free {
+    background-color: oklch(0.3 0.01 280);
+    color: oklch(0.75 0.02 260);
+}
+
+.plano__detalhe {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.plano__situacao {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.plano__vencimento {
+    font-size: 0.85rem;
+    color: oklch(0.7 0.02 260);
+}
+
+.plano__info {
+    margin-bottom: 20px;
+}
+
+.plano__acao {
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+}
+
+.plano__historico__titulo {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.3rem;
+    color: oklch(0.96 0.01 140);
+    letter-spacing: 1px;
+    margin: 28px 0 12px;
+}
+
+.plano__historico {
+    overflow-x: auto;
+}
+
+.plano__tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.plano__tabela th {
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: oklch(0.6 0.01 280);
+    padding: 8px 12px;
+    border-bottom: 1px solid oklch(0.3 0.01 280);
+    white-space: nowrap;
+}
+
+.plano__tabela td {
+    padding: 12px;
+    border-bottom: 1px solid oklch(0.24 0.01 280);
+    color: oklch(0.9 0.01 140);
+}
+
+.plano__tabela tr:last-child td {
+    border-bottom: none;
+}
+
+.plano__status {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 9px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.plano__status--pago {
+    background-color: oklch(0.35 0.09 150);
+    color: oklch(0.92 0.06 150);
+}
+
+.plano__status--pendente {
+    background-color: oklch(0.35 0.07 80);
+    color: oklch(0.92 0.08 80);
+}
+
+.plano__status--outro {
+    background-color: oklch(0.3 0.01 280);
+    color: oklch(0.75 0.02 260);
+}
+
+.plano__vazio {
+    font-size: 0.9rem;
+    color: oklch(0.7 0.02 260);
+    padding: 8px 0;
+}
+
+@media (max-width: 600px) {
+    .plano__resumo {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .plano__acao {
+        display: block;
+        width: 100%;
+    }
+
+    /* Em telas estreitas as quatro colunas não cabem: a data de pagamento
+       é a informação menos crítica, então ela sai e a tabela deixa de
+       precisar de rolagem horizontal. */
+    .plano__tabela th:nth-child(4),
+    .plano__tabela td:nth-child(4) {
+        display: none;
+    }
+
+    .plano__tabela th,
+    .plano__tabela td {
+        padding: 10px 8px;
+    }
+}
+
 /* ========================== TIPO DE CONTA ======================== */
 
 .role__badge {
