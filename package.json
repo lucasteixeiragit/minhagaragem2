@@ -8,6 +8,7 @@
     "test": "node --test src/js/__tests__/*.test.js",
     "dev": "nodemon ./src/js/server.js",
     "notificar": "node ./scripts/notificar.js",
+    "plano": "node ./scripts/plano.js",
     "seed:fabricantes": "node ./scripts/seed-fabricantes.js"
   },
   "repository": {
