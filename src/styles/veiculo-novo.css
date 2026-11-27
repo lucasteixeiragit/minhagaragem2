@@ -53,6 +53,10 @@
     gap: 32px;
 }
 
+.form__column {
+    min-width: 0;
+}
+
 .form__column--intervalos {
     min-width: 0;
     padding-left: 32px;
@@ -239,6 +243,7 @@
 
 .form__row .form__field {
     flex: 1;
+    min-width: 0;
 }
 
 .form__field {
@@ -258,6 +263,10 @@
 
 .form__input {
     box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    text-overflow: ellipsis;
     background-color: oklch(0.11 0.005 280);
     border: 1px solid oklch(0.26 0.012 265);
     border-radius: 6px;
@@ -265,12 +274,14 @@
     color: white;
     font-family: "Inter", sans-serif;
     font-size: 0.95rem;
-    
 }
 
 .form__input__calendar,
 input[type="date"].form__input__calendar {
     box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     background-color: oklch(0.11 0.005 280);
     border: 1px solid oklch(0.26 0.012 265);
     border-radius: 6px;
