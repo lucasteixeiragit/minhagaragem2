@@ -194,6 +194,25 @@ router.post('/webhook', async (req, res) => {
             assinatura = await Assinatura.buscarPorSlug(slug);
         }
 
+        // Último recurso: o invoice_slug do webhook também não é o slug do
+        // link de checkout (são identificadores distintos na InfinitePay).
+        // Como o preço é fixo e definido no servidor, casa a cobrança
+        // pendente mais antiga com o mesmo valor, dentro de 48 horas.
+        // Só chega aqui depois de o payment_check confirmar o pagamento,
+        // então o valor do corpo já foi validado contra o gateway.
+        if (!assinatura) {
+            const confirmacao = await verificarPagamento({ orderNsu, transactionNsu, slug });
+
+            if (confirmacao.pago) {
+                const desde = new Date(Date.now() - 48 * 60 * 60 * 1000);
+                assinatura = await Assinatura.buscarPendentePorValor(confirmacao.valorCentavos, desde);
+
+                if (assinatura) {
+                    console.warn('Webhook casado por valor:', confirmacao.valorCentavos, 'centavos | assinatura:', String(assinatura._id));
+                }
+            }
+        }
+
         if (!assinatura) {
             // Pedido desconhecido: aceita o 200 para o gateway não reenviar
             console.warn('Webhook para order_nsu desconhecido:', orderNsu, '| slug:', slug);

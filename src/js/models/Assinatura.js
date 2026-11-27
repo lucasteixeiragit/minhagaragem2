@@ -78,6 +78,31 @@ class Assinatura {
     }
 
     // ========================================================
+    // MÉTODO: buscarPendentePorValor(valorCentavos, desde)
+    // PROPÓSITO: Último recurso de casamento do webhook. A InfinitePay
+    // devolve no webhook um order_nsu próprio (UUID) e um invoice_slug que
+    // NÃO é o slug do link de checkout, então nenhum dos dois identifica o
+    // nosso documento. Como o preço é fixo e definido no servidor, a
+    // cobrança pendente mais antiga com aquele valor é a candidata correta.
+    // PARÂMETROS: valorCentavos = amount do webhook; desde = janela mínima
+    // de criação, para não casar uma cobrança antiga esquecida.
+    // RETORNO: documento da assinatura ou null.
+    // LIDO POR: routes/pagamento.routes.js (webhook)
+    // ========================================================
+    static async buscarPendentePorValor(valorCentavos, desde) {
+        if (!Number.isFinite(Number(valorCentavos))) return null;
+        const db = getBanco();
+        return await db.collection(COLECAO).findOne(
+            {
+                status: 'pendente',
+                valorCentavos: Number(valorCentavos),
+                criadoEm: { $gte: desde }
+            },
+            { sort: { criadoEm: 1 } }
+        );
+    }
+
+    // ========================================================
     // MÉTODO: marcarPagaPorId(id, { transactionNsu, slug })
     // PROPÓSITO: Marca como paga pelo _id do documento. Necessário quando
     // o webhook casou a cobrança pelo slug e não temos o orderNsu em mãos.
