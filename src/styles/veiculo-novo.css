@@ -309,7 +309,7 @@ input[type="date"].form__input__calendar::-webkit-calendar-picker-indicator {
 
 .form__excluir {
     border: 2px solid oklch(0.26 0.012 265);
-    background: oklch(0.62 0.22 25);
+    background: oklch(43.326% 0.01745 17.692);
     padding: 10px 24px;
     border-radius: 6px;
     cursor: pointer;
